@@ -56,8 +56,13 @@ export class GraphView {
         // Add UI elements to the UI layer
         this.uiLayer.add(this.equationBg, this.equationText, this.errorText);
 
-        // Initial draw of the graph
+        // Initial draw of the graph and platform
         this.drawGridAndAxes();
+        const platforms = this.model.getPlatformsData();
+        platforms.forEach(platform => {
+            this.drawPlatform(platform.startX, platform.endX);
+        });
+
 
         // Draw both layers
         this.graphLayer.draw();
@@ -107,8 +112,6 @@ export class GraphView {
 
     private drawEquationLine(m: number, b: number, length: number = 5) {
         let points: number[] = [];
-
-
         if (m === 0) {
             // horizontal lines (y = b)
 
@@ -160,11 +163,38 @@ export class GraphView {
                 strokeWidth: 3,
                 lineCap: "round",
                 lineJoin: "round",
-                zIndex: 1, // Above grid
+                zIndex: 2, // Above grid
             });
             this.graphLayer.add(this.currentLine);
         }
     }
+
+    private drawPlatform(startX: number, endX: number) {
+        // 1. Define math coordinates
+        const mathY = 0; // Always on the x-axis
+
+        // 2. Convert to pixel coordinates
+        const points = [
+            this.toCanvasX(startX),
+            this.toCanvasY(mathY),
+            this.toCanvasX(endX),
+            this.toCanvasY(mathY)
+        ];
+
+        // 3. Create the Konva Line
+        const platform = new Konva.Line({
+            points: points,
+            stroke: "black",
+            strokeWidth: 6,
+            lineCap: "round",
+            zIndex: 1,
+            name: "platform",
+        });
+
+        // 4. Add to the graph layer
+        this.graphLayer.add(platform);
+    }
+
 
 
     private clearEquationLine() {
@@ -174,22 +204,42 @@ export class GraphView {
         }
     }
 
+    private clearAllPlatforms() {
+        // Find all nodes on the layer with the name 'platform'
+        const platforms = this.graphLayer.find('.platform');
+
+        // Destroy them
+        platforms.forEach(platformNode => {
+            platformNode.destroy();
+        });
+    }
+
     /** This is the main update function called by the model's notification. */
     public update = () => {
+        // 1. Clear all old platforms
+        this.clearAllPlatforms();
 
-        // 1. Update the line based on model data
+
+        // 2. Redraw all platforms (reading from the model)
+        const platforms = this.model.getPlatformsData();
+        platforms.forEach(platform => {
+            this.drawPlatform(platform.startX, platform.endX);
+        });
+
+        // 3. Update the line based on model data
         const eq = this.model.getParsedEquation();
         if (eq) {
             this.drawEquationLine(eq.m, eq.b);
         } else {
             this.clearEquationLine();
         }
-        // 2. Update the UI text (logic that was in UIView)
+
+        // 4. Update the UI text (logic that was in UIView)
         this.equationText.text(this.model.getEquationString());
         this.errorText.text(this.model.getErrorMessage());
         this.errorText.fill(this.model.getErrorMessage().startsWith("Invalid") ? "red" : "blue");
 
-        // 3. Redraw both layers
+        // 5. Redraw both layers
         this.graphLayer.batchDraw();
         this.uiLayer.batchDraw();
     };

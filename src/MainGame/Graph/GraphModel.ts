@@ -17,6 +17,7 @@ export class GraphModel {
     private errorMessage: string;
     private parsedEquation: LineEquation | null;
 
+    private platformsData: Array<{ startX: number, endX: number }> = [];
 
     // Observer pattern
     private listeners: Function[] = [];
@@ -30,6 +31,9 @@ export class GraphModel {
         this.equationString = INPUT_PREFIX;
         this.errorMessage = "";
         this.parsedEquation = null;
+
+        // MOCK only
+        this.platformsData.push({ startX: -10, endX: -5 });
     }
 
     // --- Public Getters ---
@@ -41,6 +45,7 @@ export class GraphModel {
     getParsedEquation = () => this.parsedEquation;
     getOriginX = () => this.originX;
     getOriginY = () => this.originY;
+    getPlatformsData = () => this.platformsData;
 
     // --- Public Methods (called by Controller) ---
     public setOrigin(x: number, y: number) {
@@ -73,6 +78,19 @@ export class GraphModel {
         if (parsed) {
             this.parsedEquation = parsed;
             this.errorMessage = "";
+
+            // for platform creation, MOCK only
+            // 1. Clear old platform data
+            this.platformsData = [];
+
+            // 2. Generate a new random platform
+            const mathMinX = -this.originX / this.scale;
+            const mathMaxX = (this.width - this.originX) / this.scale;
+            const randX1 = Math.random() * (mathMaxX - mathMinX) + mathMinX;
+            const randX2 = Math.random() * (mathMaxX - mathMinX) + mathMinX;
+
+            // 3. Add the new platform to the model's array
+            this.platformsData.push({ startX: Math.min(randX1, randX2), endX: Math.max(randX1, randX2) });
         } else {
             this.parsedEquation = null;
             this.errorMessage = "Invalid format. Use 'y = mx + b'";
