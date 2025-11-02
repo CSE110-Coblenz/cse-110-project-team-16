@@ -6,19 +6,62 @@ import { GraphModel } from "./GraphModel"; // Changed for consistency
 export class GraphView {
     private model: GraphModel;
     private stage: Konva.Stage;
-    private layer: Konva.Layer;
+
+    // --- Graph Layer ---
+    private graphLayer: Konva.Layer;
     private currentLine: Konva.Line | null = null;
+
+    // --- UI Elements (moved from UIView) ---
+    private uiLayer: Konva.Layer;
+    private equationText: Konva.Text;
+    private equationBg: Konva.Rect;
+    private errorText: Konva.Text;
 
     constructor(model: GraphModel, stage: Konva.Stage) {
         this.model = model;
-        this.stage = stage; // Store the shared stage
+        this.stage = stage;
 
-        this.layer = new Konva.Layer();
-        this.stage.add(this.layer);
+        // 1. Initialize Graph Layer (for grid and lines)
+        this.graphLayer = new Konva.Layer();
+        this.stage.add(this.graphLayer);
 
-        // Initial draw
+        // 2. Initialize UI Layer (for text)
+        this.uiLayer = new Konva.Layer();
+        this.stage.add(this.uiLayer); // Added second, so it's on top
+
+        // 3. Initialize UI Elements
+        this.equationBg = new Konva.Rect({
+            x: 0, y: 0,
+            width: this.model.getWidth(),
+            height: 40,
+            fill: "#fdfdfd",
+            stroke: "#eee",
+            strokeWidth: 1,
+        });
+        this.equationText = new Konva.Text({
+            x: 10, y: 10,
+            text: this.model.getEquationString(),
+            fontSize: 18,
+            fontFamily: "monospace",
+            fill: "#333",
+        });
+        this.errorText = new Konva.Text({
+            x: 10, y: 40,
+            text: this.model.getErrorMessage(),
+            fontSize: 14,
+            fontFamily: "sans-serif",
+            fill: "blue",
+        });
+
+        // Add UI elements to the UI layer
+        this.uiLayer.add(this.equationBg, this.equationText, this.errorText);
+
+        // Initial draw of the graph
         this.drawGridAndAxes();
-        this.layer.draw();
+
+        // Draw both layers
+        this.graphLayer.draw();
+        this.uiLayer.draw();
 
         // Subscribe to model changes
         this.model.subscribe(this.update);
@@ -45,16 +88,16 @@ export class GraphView {
         // Axes
         const xAxis = new Konva.Line({ points: [0, originY, width, originY], stroke: "#aaa", strokeWidth: 2 });
         const yAxis = new Konva.Line({ points: [originX, 0, originX, height], stroke: "#aaa", strokeWidth: 2 });
-        this.layer.add(xAxis, yAxis);
+        this.graphLayer.add(xAxis, yAxis);
 
         // Grid
         for (let x = -Math.ceil(width / scale); x <= Math.ceil(width / scale); x++) {
             if (x === 0) continue;
-            this.layer.add(new Konva.Line({ points: [this.toCanvasX(x), 0, this.toCanvasX(x), height], stroke: "#eee", strokeWidth: 1 }));
+            this.graphLayer.add(new Konva.Line({ points: [this.toCanvasX(x), 0, this.toCanvasX(x), height], stroke: "#eee", strokeWidth: 1 }));
         }
         for (let y = -Math.ceil(height / scale); y <= Math.ceil(height / scale); y++) {
             if (y === 0) continue;
-            this.layer.add(new Konva.Line({ points: [0, this.toCanvasY(y), width, this.toCanvasY(y)], stroke: "#eee", strokeWidth: 1 }));
+            this.graphLayer.add(new Konva.Line({ points: [0, this.toCanvasY(y), width, this.toCanvasY(y)], stroke: "#eee", strokeWidth: 1 }));
         }
 
         // Ensure grid is behind everything
@@ -62,18 +105,52 @@ export class GraphView {
         yAxis.zIndex(0);
     }
 
-    private drawEquationLine(m: number, b: number) {
-        const width = this.model.getWidth();
-        const scale = this.model.getScale();
-        const originX = this.model.getOriginX();
+    private drawEquationLine(m: number, b: number, length: number = 5) {
+        let points: number[] = [];
 
-        const mathX1 = -originX / scale;
-        const mathY1 = m * mathX1 + b;
-        const mathX2 = (width - originX) / scale;
-        const mathY2 = m * mathX2 + b;
 
-        const points = [this.toCanvasX(mathX1), this.toCanvasY(mathY1), this.toCanvasX(mathX2), this.toCanvasY(mathY2)];
+        if (m === 0) {
+            // horizontal lines (y = b)
 
+            // 1. Start point: (0, b)
+            const mathX_start = 0;
+            const mathY_start = b;
+
+            // 2. End point: (Length) units to the right -> (Length, b)
+            const mathX_end = length;
+            const mathY_end = b;
+
+            points = [
+                this.toCanvasX(mathX_start), this.toCanvasY(mathY_start),
+                this.toCanvasX(mathX_end), this.toCanvasY(mathY_end)
+            ];
+        } else {
+            // Case: m != 0 (a standard sloped line)
+
+            // 1. Calculate Start Point (the x-intercept)
+            const mathX_start = -b / m;
+            const mathY_start = 0;
+
+            // 2. Calculate the end point (Length) units away
+            // We need to find (deltaX, deltaY) such that:
+            // sqrt(deltaX^2 + deltaY^2) = (Length)
+            // AND deltaY = m * deltaX
+            //
+            // Solving this gives:
+            // deltaX = (Length) / sqrt(1 + m^2)
+            // deltaY = (Length)*m / sqrt(1 + m^2)
+
+            const denominator = Math.sqrt(1 + m * m);
+            const deltaX = length / denominator;
+            const deltaY = (length * m) / denominator;
+
+            const mathX_end = mathX_start + deltaX;
+            const mathY_end = mathY_start + deltaY;
+
+            points = [this.toCanvasX(mathX_start), this.toCanvasY(mathY_start), this.toCanvasX(mathX_end), this.toCanvasY(mathY_end)];
+        }
+
+        // 3. Draw or update the line
         if (this.currentLine) {
             this.currentLine.points(points);
         } else {
@@ -85,9 +162,10 @@ export class GraphView {
                 lineJoin: "round",
                 zIndex: 1, // Above grid
             });
-            this.layer.add(this.currentLine);
+            this.graphLayer.add(this.currentLine);
         }
     }
+
 
     private clearEquationLine() {
         if (this.currentLine) {
@@ -98,37 +176,21 @@ export class GraphView {
 
     /** This is the main update function called by the model's notification. */
     public update = () => {
-        // 1. Check if a resize is needed
-        this.handleResize();
 
-        // 2. Update the line based on model data
+        // 1. Update the line based on model data
         const eq = this.model.getParsedEquation();
         if (eq) {
             this.drawEquationLine(eq.m, eq.b);
         } else {
             this.clearEquationLine();
         }
+        // 2. Update the UI text (logic that was in UIView)
+        this.equationText.text(this.model.getEquationString());
+        this.errorText.text(this.model.getErrorMessage());
+        this.errorText.fill(this.model.getErrorMessage().startsWith("Invalid") ? "red" : "blue");
 
-        this.layer.batchDraw();
+        // 3. Redraw both layers
+        this.graphLayer.batchDraw();
+        this.uiLayer.batchDraw();
     };
-
-    /** Checks for window resize and rebuilds the grid if needed. */
-    private handleResize() {
-        const newWidth = this.model.getWidth();
-        const newHeight = this.model.getHeight();
-
-        // Check if stage size differs from model's size
-        if (this.stage.width() !== newWidth || this.stage.height() !== newHeight) {
-            // Resize stage
-            this.stage.width(newWidth);
-            this.stage.height(newHeight);
-
-            // Clear and redraw grid/axes
-            this.layer.destroyChildren();
-            this.drawGridAndAxes();
-
-            // Force redraw of line on next update
-            this.currentLine = null;
-        }
-    }
 }

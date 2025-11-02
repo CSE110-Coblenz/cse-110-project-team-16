@@ -10,7 +10,6 @@ export class GraphController {
 
         // Attach event listeners
         window.addEventListener("keydown", this.handleKeydown);
-        window.addEventListener("resize", this.handleResize);
     }
 
     private handleKeydown = (e: KeyboardEvent) => {
@@ -27,12 +26,5 @@ export class GraphController {
             // Only talk to the model
             this.model.appendCharacter(e.key);
         }
-    };
-
-    private handleResize = () => {
-        // ONLY tell the model about the new size.
-        // The model.notify() will trigger both views
-        // to call their update() and handleResize() methods.
-        this.model.updateDimensions(window.innerWidth, window.innerHeight);
     };
 }

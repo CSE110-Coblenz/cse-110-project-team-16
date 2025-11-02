@@ -94,24 +94,4 @@ export class GraphModel {
         }
     }
 
-
-
-    public updateDimensions(width: number, height: number) {
-        // Check if the origin was still the *old* center
-        const oldCenterX = this.width / 2;
-        const oldCenterY = this.height / 2;
-
-        if (this.originX === oldCenterX) {
-            this.originX = width / 2; // Move it to the new center
-        }
-        if (this.originY === oldCenterY) {
-            this.originY = height / 2; // Move it to the new center
-        }
-        // If the user set a custom origin (e.g., bottom-left),
-        // it will NOT equal the old center, so it will stay put.
-
-        this.width = width;
-        this.height = height;
-        this.notify();
-    }
 }
