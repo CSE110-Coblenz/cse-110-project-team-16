@@ -7,6 +7,8 @@ export function parseEquation(eq: string): LineEquation | null {
     eq = eq.replace(/\s+/g, "");
     if (!eq.startsWith("y=")) return null;
 
+    // if other than mx + b form, reject
+    if (!/^y=[0-9x+\-\.]*$/i.test(eq)) return null;
     const expr = eq.substring(2);
     let m = 0;
     let b = 0;

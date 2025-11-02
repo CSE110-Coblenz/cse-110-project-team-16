@@ -28,7 +28,7 @@ export class GraphModel {
         this.originY = this.height / 2;
         this.scale = SCALE;
         this.equationString = INPUT_PREFIX;
-        this.errorMessage = "Click and start typing...";
+        this.errorMessage = "";
         this.parsedEquation = null;
     }
 
