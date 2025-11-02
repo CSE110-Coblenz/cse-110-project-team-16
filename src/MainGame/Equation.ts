@@ -14,20 +14,34 @@ export function parseEquation(eq: string): LineEquation | null {
     let b = 0;
     const xIndex = expr.indexOf("x");
 
+
+    // y = A
     if (xIndex === -1) {
         m = 0;
         b = parseFloat(expr);
-    } else {
-        const mStr = expr.substring(0, xIndex);
-        if (mStr === "") m = 1;
-        else if (mStr === "-") m = -1;
-        else m = parseFloat(mStr);
-
-        const bStr = expr.substring(xIndex + 1);
-        if (bStr === "") b = 0;
-        else b = parseFloat(bStr);
+        if (isNaN(m) || isNaN(b)) return null;
+        return { m, b };
     }
 
+
+    const mStr = expr.substring(0, xIndex);
+    if (mStr === "") m = 1;
+    else if (mStr === "-") m = -1;
+    else m = parseFloat(mStr);
+
+    const bStr = expr.substring(xIndex + 1);
+
+    if (bStr === "") {
+        // No 'b' term (e.g., "y = 5x")
+        b = 0;
+        if (isNaN(m) || isNaN(b)) return null;
+        return { m, b };
+    }
+
+    // If bStr(sub string after x) exists, it MUST start with '+' or '-'
+    if (!(bStr.startsWith("+") || bStr.startsWith("-"))) return null;
+
+    b = parseFloat(bStr); // "y = x+5" or "y = 5x-3"
     if (isNaN(m) || isNaN(b)) return null;
     return { m, b };
 }

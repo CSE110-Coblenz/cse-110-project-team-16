@@ -43,6 +43,14 @@ describe("parseEquation", () => {
         expect(parseEquation("2x+3")).toBeNull();
     });
 
+    it("should return null if missing '+'", () => {
+        expect(parseEquation("x5")).toBeNull();
+    });
+
+    it("should return null if missing '+'", () => {
+        expect(parseEquation("x5+6")).toBeNull();
+    });
+
     it("should return null if contains invalid character (z)", () => {
         expect(parseEquation("y=5z+3")).toBeNull();
     });
