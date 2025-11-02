@@ -1,9 +1,9 @@
 import "../style.css";
 import Konva from "konva";
 // import MVC of differnt modules
-import { GraphModel } from "./MainGame/GraphModel";
-import { GraphView } from "./MainGame/GraphView";
-import { GraphController } from "./MainGame/GraphController";
+import { GraphModel } from "./MainGame/Graph/GraphModel";
+import { GraphView } from "./MainGame/Graph/GraphView";
+import { GraphController } from "./MainGame/Graph/GraphController";
 
 // 1. Create the Model (the data)
 const model = new GraphModel();

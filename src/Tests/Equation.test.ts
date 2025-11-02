@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseEquation } from "../MainGame/Equation";
+import { parseEquation } from "../MainGame/Graph/Equation";
 
 describe("parseEquation", () => {
     // valid equations

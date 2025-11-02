@@ -1,7 +1,7 @@
 // src/graphView.ts
 
 import Konva from "konva";
-import { GraphModel } from "./GraphModel"; // Changed for consistency
+import { GraphModel } from "./GraphModel";
 
 export class GraphView {
     private model: GraphModel;
