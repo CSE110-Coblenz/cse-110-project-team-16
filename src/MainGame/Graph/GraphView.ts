@@ -1,0 +1,246 @@
+// src/graphView.ts
+
+import Konva from "konva";
+import { GraphModel } from "./GraphModel";
+
+export class GraphView {
+    private model: GraphModel;
+    private stage: Konva.Stage;
+
+    // --- Graph Layer ---
+    private graphLayer: Konva.Layer;
+    private currentLine: Konva.Line | null = null;
+
+    // --- UI Elements (moved from UIView) ---
+    private uiLayer: Konva.Layer;
+    private equationText: Konva.Text;
+    private equationBg: Konva.Rect;
+    private errorText: Konva.Text;
+
+    constructor(model: GraphModel, stage: Konva.Stage) {
+        this.model = model;
+        this.stage = stage;
+
+        // 1. Initialize Graph Layer (for grid and lines)
+        this.graphLayer = new Konva.Layer();
+        this.stage.add(this.graphLayer);
+
+        // 2. Initialize UI Layer (for text)
+        this.uiLayer = new Konva.Layer();
+        this.stage.add(this.uiLayer); // Added second, so it's on top
+
+        // 3. Initialize UI Elements
+        this.equationBg = new Konva.Rect({
+            x: 0, y: 0,
+            width: this.model.getWidth(),
+            height: 40,
+            fill: "#fdfdfd",
+            stroke: "#eee",
+            strokeWidth: 1,
+        });
+        this.equationText = new Konva.Text({
+            x: 10, y: 10,
+            text: this.model.getEquationString(),
+            fontSize: 18,
+            fontFamily: "monospace",
+            fill: "#333",
+        });
+        this.errorText = new Konva.Text({
+            x: 10, y: 40,
+            text: this.model.getErrorMessage(),
+            fontSize: 14,
+            fontFamily: "sans-serif",
+            fill: "blue",
+        });
+
+        // Add UI elements to the UI layer
+        this.uiLayer.add(this.equationBg, this.equationText, this.errorText);
+
+        // Initial draw of the graph and platform
+        this.drawGridAndAxes();
+        const platforms = this.model.getPlatformsData();
+        platforms.forEach(platform => {
+            this.drawPlatform(platform.startX, platform.endX);
+        });
+
+
+        // Draw both layers
+        this.graphLayer.draw();
+        this.uiLayer.draw();
+
+        // Subscribe to model changes
+        this.model.subscribe(this.update);
+    }
+
+    // --- Coordinate Helpers ---
+    private toCanvasX = (mathX: number) => {
+        // Use the model's origin
+        return this.model.getOriginX() + mathX * this.model.getScale();
+    };
+    private toCanvasY = (mathY: number) => {
+        // Use the model's origin (and flip Y-axis)
+        return this.model.getOriginY() - mathY * this.model.getScale();
+    };
+
+    // --- Drawing Methods ---
+    private drawGridAndAxes() {
+        const width = this.model.getWidth();
+        const height = this.model.getHeight();
+        const scale = this.model.getScale();
+        const originX = this.model.getOriginX();
+        const originY = this.model.getOriginY();
+
+        // Axes
+        const xAxis = new Konva.Line({ points: [0, originY, width, originY], stroke: "#aaa", strokeWidth: 2 });
+        const yAxis = new Konva.Line({ points: [originX, 0, originX, height], stroke: "#aaa", strokeWidth: 2 });
+        this.graphLayer.add(xAxis, yAxis);
+
+        // Grid
+        for (let x = -Math.ceil(width / scale); x <= Math.ceil(width / scale); x++) {
+            if (x === 0) continue;
+            this.graphLayer.add(new Konva.Line({ points: [this.toCanvasX(x), 0, this.toCanvasX(x), height], stroke: "#eee", strokeWidth: 1 }));
+        }
+        for (let y = -Math.ceil(height / scale); y <= Math.ceil(height / scale); y++) {
+            if (y === 0) continue;
+            this.graphLayer.add(new Konva.Line({ points: [0, this.toCanvasY(y), width, this.toCanvasY(y)], stroke: "#eee", strokeWidth: 1 }));
+        }
+
+        // Ensure grid is behind everything
+        xAxis.zIndex(0);
+        yAxis.zIndex(0);
+    }
+
+    private drawEquationLine(m: number, b: number, length: number = 5) {
+        let points: number[] = [];
+        if (m === 0) {
+            // horizontal lines (y = b)
+
+            // 1. Start point: (0, b)
+            const mathX_start = 0;
+            const mathY_start = b;
+
+            // 2. End point: (Length) units to the right -> (Length, b)
+            const mathX_end = length;
+            const mathY_end = b;
+
+            points = [
+                this.toCanvasX(mathX_start), this.toCanvasY(mathY_start),
+                this.toCanvasX(mathX_end), this.toCanvasY(mathY_end)
+            ];
+        } else {
+            // Case: m != 0 (a standard sloped line)
+
+            // 1. Calculate Start Point (the x-intercept)
+            const mathX_start = -b / m;
+            const mathY_start = 0;
+
+            // 2. Calculate the end point (Length) units away
+            // We need to find (deltaX, deltaY) such that:
+            // sqrt(deltaX^2 + deltaY^2) = (Length)
+            // AND deltaY = m * deltaX
+            //
+            // Solving this gives:
+            // deltaX = (Length) / sqrt(1 + m^2)
+            // deltaY = (Length)*m / sqrt(1 + m^2)
+
+            const denominator = Math.sqrt(1 + m * m);
+            const deltaX = length / denominator;
+            const deltaY = (length * m) / denominator;
+
+            const mathX_end = mathX_start + deltaX;
+            const mathY_end = mathY_start + deltaY;
+
+            points = [this.toCanvasX(mathX_start), this.toCanvasY(mathY_start), this.toCanvasX(mathX_end), this.toCanvasY(mathY_end)];
+        }
+
+        // 3. Draw or update the line
+        if (this.currentLine) {
+            this.currentLine.points(points);
+        } else {
+            this.currentLine = new Konva.Line({
+                points: points,
+                stroke: "red",
+                strokeWidth: 3,
+                lineCap: "round",
+                lineJoin: "round",
+                zIndex: 2, // Above grid
+            });
+            this.graphLayer.add(this.currentLine);
+        }
+    }
+
+    private drawPlatform(startX: number, endX: number) {
+        // 1. Define math coordinates
+        const mathY = 0; // Always on the x-axis
+
+        // 2. Convert to pixel coordinates
+        const points = [
+            this.toCanvasX(startX),
+            this.toCanvasY(mathY),
+            this.toCanvasX(endX),
+            this.toCanvasY(mathY)
+        ];
+
+        // 3. Create the Konva Line
+        const platform = new Konva.Line({
+            points: points,
+            stroke: "black",
+            strokeWidth: 6,
+            lineCap: "round",
+            zIndex: 1,
+            name: "platform",
+        });
+
+        // 4. Add to the graph layer
+        this.graphLayer.add(platform);
+    }
+
+
+
+    private clearEquationLine() {
+        if (this.currentLine) {
+            this.currentLine.destroy();
+            this.currentLine = null;
+        }
+    }
+
+    private clearAllPlatforms() {
+        // Find all nodes on the layer with the name 'platform'
+        const platforms = this.graphLayer.find('.platform');
+
+        // Destroy them
+        platforms.forEach(platformNode => {
+            platformNode.destroy();
+        });
+    }
+
+    /** This is the main update function called by the model's notification. */
+    public update = () => {
+        // 1. Clear all old platforms
+        this.clearAllPlatforms();
+
+
+        // 2. Redraw all platforms (reading from the model)
+        const platforms = this.model.getPlatformsData();
+        platforms.forEach(platform => {
+            this.drawPlatform(platform.startX, platform.endX);
+        });
+
+        // 3. Update the line based on model data
+        const eq = this.model.getParsedEquation();
+        if (eq) {
+            this.drawEquationLine(eq.m, eq.b);
+        } else {
+            this.clearEquationLine();
+        }
+
+        // 4. Update the UI text (logic that was in UIView)
+        this.equationText.text(this.model.getEquationString());
+        this.errorText.text(this.model.getErrorMessage());
+        this.errorText.fill(this.model.getErrorMessage().startsWith("Invalid") ? "red" : "blue");
+
+        // 5. Redraw both layers
+        this.graphLayer.batchDraw();
+        this.uiLayer.batchDraw();
+    };
+}

@@ -1,29 +1,29 @@
-import Konva from 'konva';
+import "../style.css";
+import Konva from "konva";
+// import MVC of differnt modules
+import { GraphModel } from "./MainGame/Graph/GraphModel";
+import { GraphView } from "./MainGame/Graph/GraphView";
+import { GraphController } from "./MainGame/Graph/GraphController";
 
-// first we need to create a stage
+// 1. Create the Model (the data)
+const model = new GraphModel();
+// const padding = 20;
+// model.setOrigin(padding, model.getHeight() - padding);
+
+
+// 2. Create the shared Konva Stage
 const stage = new Konva.Stage({
-  container: 'container',
-  width: window.innerWidth,
-  height: window.innerHeight
+  container: "container",
+  width: model.getWidth(),
+  height: model.getHeight(),
 });
 
-// then create layer
-const layer = new Konva.Layer();
-stage.add(layer);
+// 3. Create the Views, passing them the model and the shared stage
+// Each view will create and manage its own Konva.Layer
+const graphView = new GraphView(model, stage);
 
-// create our shape
-const circle = new Konva.Circle({
-  x: stage.width() / 2,
-  y: stage.height() / 2,
-  radius: 70,
-  fill: 'red',
-  stroke: 'black',
-  strokeWidth: 4
-});
+// 4. Create the Controller
+// The controller now only needs to talk to the model.
+new GraphController(model);
 
-// add the shape to the layer
-layer.add(circle);
-
-// add the layer to the stage
-stage.add(layer);
-
+// The app is running.
