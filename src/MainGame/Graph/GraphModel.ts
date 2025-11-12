@@ -28,8 +28,8 @@ export class GraphModel {
     private rng: () => number;
     private levelConfigs: Array<{ count: number; minLen: number; maxLen: number; maxRise: number }>; // predefined difficulties
     // Sequential bridging anchor (index of the left platform in the next connection)
-    private anchorIndex: number;
-    private recentConnection: { fromX: number; fromY: number; toX: number; toY: number } | null;
+    private anchorIndex: number = 0;
+    private recentConnection: { fromX: number; fromY: number; toX: number; toY: number } | null = null;
     private segmentInput: { m: number; length: number } | null = null;
 
     // Observer pattern
