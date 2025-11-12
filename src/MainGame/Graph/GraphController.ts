@@ -13,6 +13,15 @@ export class GraphController {
     }
 
     private handleKeydown = (e: KeyboardEvent) => {
+        // Ignore typing when focused on inputs/textareas/contenteditable
+        const target = e.target as HTMLElement | null;
+        if (target) {
+            const tag = target.tagName;
+            const isEditable = (target as any).isContentEditable;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || isEditable) {
+                return;
+            }
+        }
         // We don't need to prevent default for printable chars
         if (e.key === "Enter" || e.key === "Backspace") {
             e.preventDefault();
@@ -20,6 +29,7 @@ export class GraphController {
 
         if (e.key === "Enter") {
             this.model.parseAndPlot();
+            this.model.checkGoalAndUpdate();
         } else if (e.key === "Backspace") {
             this.model.deleteCharacter();
         } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
