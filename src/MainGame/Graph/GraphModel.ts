@@ -215,7 +215,9 @@ export class GraphModel {
                     const right = this.platformsData[this.anchorIndex + 1];
                     this.recentConnection = {
                         fromX: Math.max(left.startX, left.endX),
+                        fromY: left.y,
                         toX: Math.min(right.startX, right.endX),
+                        toY: right.y,
                     };
                     targetIndex = this.anchorIndex + 1; // mark the right platform as newly bridged
                 } else {
