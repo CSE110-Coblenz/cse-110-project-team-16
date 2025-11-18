@@ -16,8 +16,10 @@
     <input id="playerNameInput" type="text" placeholder="Player name" style="margin-left:12px; width: 140px;" />
     <span id="playerInfo" style="margin-left:12px; font-weight:600;"></span>
     <div style="margin-top:6px; text-align:right;">
-      <label style="margin-right:4px;">m</label>
-      <input id="slopeInput" type="text" style="width:80px;" placeholder="slope (e.g., 1/2)" />
+      <div class="input-wrapper">
+        <span class="input-prefix">y=</span>
+        <input id="equationInput" type="text" placeholder="i.e. mx" />
+      </div>
       <label style="margin:0 4px 0 8px;">len</label>
       <input id="lengthInput" type="number" step="any" style="width:80px;" placeholder="length" />
       <button id="drawBtn" style="margin-left:8px;">Draw</button>
