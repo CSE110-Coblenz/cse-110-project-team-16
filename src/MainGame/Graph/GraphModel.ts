@@ -53,11 +53,11 @@ export class GraphModel {
         this.levelConfigs = [
             { count: 2, minLen: 8, maxLen: 12, maxRise: 1 }, // Level 1
             { count: 2, minLen: 7, maxLen: 10, maxRise: 2 }, // Level 2
-            { count: 2, minLen: 6, maxLen: 9,  maxRise: 2 }, // Level 3
-            { count: 3, minLen: 5, maxLen: 8,  maxRise: 3 }, // Level 4
-            { count: 3, minLen: 4, maxLen: 7,  maxRise: 3 }, // Level 5
-            { count: 4, minLen: 3, maxLen: 6,  maxRise: 4 }, // Level 6
-            { count: 4, minLen: 2, maxLen: 5,  maxRise: 4 }, // Level 7
+            { count: 2, minLen: 6, maxLen: 9, maxRise: 2 }, // Level 3
+            { count: 3, minLen: 5, maxLen: 8, maxRise: 3 }, // Level 4
+            { count: 3, minLen: 4, maxLen: 7, maxRise: 3 }, // Level 5
+            { count: 4, minLen: 3, maxLen: 6, maxRise: 4 }, // Level 6
+            { count: 4, minLen: 2, maxLen: 5, maxRise: 4 }, // Level 7
         ];
 
         // initialize first level
@@ -118,6 +118,38 @@ export class GraphModel {
     public getSegmentInput(): { m: number; length: number } | null {
         return this.segmentInput;
     }
+
+    // Check if the current segment can bridge to the next without changing game state.
+    public canBridgeWithCurrentSegment(): boolean {
+        const seg = this.segmentInput;
+        if (!seg) return false;
+        if (this.anchorIndex >= this.platformsData.length - 1) return false;
+
+        const x0 = this.getAnchorEndX();
+        const y0 = this.getAnchorY();
+        if (x0 === null || y0 === null) return false;
+
+        const next = this.platformsData[this.anchorIndex + 1];
+        const targetX = Math.min(next.startX, next.endX);
+        const targetY = next.y;
+
+        const denom = Math.sqrt(1 + seg.m * seg.m) || 1;
+        const dx = seg.length / denom;
+        const dy = seg.m * dx;
+
+        const x1 = x0 + dx;
+        const y1 = y0 + dy;
+
+        const closeEnough =
+            Math.abs(x1 - targetX) <= 0.25 &&
+            Math.abs(y1 - targetY) <= 0.25;
+
+        const passedHorizontally =
+            x1 >= targetX && Math.abs(y1 - targetY) <= 0.5;
+
+        return closeEnough || passedHorizontally;
+    }
+
 
     /** Attempt to mark a bridge as completed using the active segment input. */
     public tryBridgeWithSegment(): boolean {
