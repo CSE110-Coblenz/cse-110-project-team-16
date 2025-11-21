@@ -15,10 +15,10 @@ export interface QuitDialogHandlers {
   onQuitToMenu: () => void;
 }
 
-/**
- * Shows a Knova-based quit dialog centered on the stage.
- * Blocks the game visually with a semi-transparent overlay.
- */
+
+//  Shows a Knova-based quit dialog centered on the stage.
+//  Blocks the game visually with a semi-transparent overlay.
+ 
 export function showQuitDialog(
   stage: Knova.Stage,
   handlers: QuitDialogHandlers
@@ -27,7 +27,7 @@ export function showQuitDialog(
   const width = stage.width();
   const height = stage.height();
 
-  // Dark translucent backdrop
+  // button backround color 
   const backdrop = new Knova.Rect({
     x: 0,
     y: 0,
@@ -67,12 +67,12 @@ export function showQuitDialog(
     fill: "black",
   });
 
-  // Button sizes/positions
+  
   const btnWidth = 120;
   const btnHeight = 30;
   const btnY = 80;
 
-  // "Return to game" button group
+  // "Return to game" button 
   const returnGroup = new Knova.Group({
     x: 20,
     y: btnY,
@@ -99,7 +99,7 @@ export function showQuitDialog(
 
   returnGroup.add(returnRect, returnText);
 
-  // "Quit to main menu" button group
+  // "Quit to main menu" button 
   const quitGroup = new Knova.Group({
     x: boxWidth - btnWidth - 20,
     y: btnY,
@@ -126,13 +126,13 @@ export function showQuitDialog(
 
   quitGroup.add(quitRect, quitText);
 
-  // Helper to remove modal
+
   const closeModal = () => {
     modalLayer.destroy();
     stage.batchDraw();
   };
 
-  // Button interactions
+
   returnGroup.on("click tap", () => {
     closeModal();
     handlers.onReturnToGame();
@@ -143,7 +143,6 @@ export function showQuitDialog(
     handlers.onQuitToMenu();
   });
 
-  // Optional: change cursor on hover
   const container = stage.container();
 
   [returnGroup, quitGroup].forEach((group) => {
