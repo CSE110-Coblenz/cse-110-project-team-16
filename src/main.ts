@@ -7,7 +7,7 @@ import { GraphController } from "./MainGame/Graph/GraphController";
 
 import { PlayerStore, PlayerProfile } from "./MainGame/Player/PlayerStore";
 import { requestQuit } from "./MainGame/UI/Quit";
-
+import { showQuitDialog } from "./MainGame/UI/Quit";
 // 1. Create the Model (the data)
 const model = new GraphModel();
 
@@ -79,11 +79,26 @@ if (restartAllBtn) {
   };
 }
 
+
 if (quitBtn) {
   quitBtn.onclick = () => {
-    if (requestQuit(window.confirm)) {
-      window.location.reload();
-    }
+    showQuitDialog(stage, {
+      onReturnToGame: () => {
+        // Do nothing; dialog already closed.
+        // Game just resumes as-is.
+      },
+      onQuitToMenu: () => {
+        // For now, we don't have a main menu.
+        // Simplest behavior: reload the page or reset to level 1.
+        // Option A: reload everything:
+        window.location.reload();
+
+        // Option B (if you prefer staying on page):
+        // model.setLevel(1);
+        // if (profile) PlayerStore.updateLevel(profile.name, 1);
+        // updatePlayerInfo();
+      },
+    });
   };
 }
 
