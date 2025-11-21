@@ -4,6 +4,10 @@ import Konva from "konva";
 import { GraphModel } from "./GraphModel";
 
 export class GraphView {
+    // render info
+    private segmentInfoText: Konva.Text;
+    private segmentErrorText: Konva.Text;
+
     private model: GraphModel;
     private stage: Konva.Stage;
 
@@ -52,6 +56,30 @@ export class GraphView {
         this.graphLayer.draw();
         this.uiLayer.draw();
 
+
+        this.segmentInfoText = new Konva.Text({
+            x: 20,
+            y: 20,
+            text: "",
+            fontSize: 22,
+            fontFamily: "monospace",
+            fill: "blue",
+            visible: false
+        });
+        this.uiLayer.add(this.segmentInfoText);
+
+        this.segmentErrorText = new Konva.Text({
+            x: 20,
+            y: 90,
+            text: "",
+            fontSize: 20,
+            fontFamily: "monospace",
+            fill: "red",
+            visible: false
+        });
+        this.uiLayer.add(this.segmentErrorText);
+
+
         // Subscribe to model changes
         this.model.subscribe(this.update);
     }
@@ -65,6 +93,32 @@ export class GraphView {
         // Use the model's origin (and flip Y-axis)
         return this.model.getOriginY() - mathY * this.model.getScale();
     };
+
+    private showSegmentError(msg: string) {
+        this.segmentErrorText.text(msg);
+        this.segmentErrorText.visible(true);
+    }
+
+    private hideSegmentError() {
+        this.segmentErrorText.visible(false);
+    }
+
+
+    private updateSegmentInfo(m: number, length: number) {
+        const angleDeg = Math.atan(m) * 180 / Math.PI;
+
+        this.segmentInfoText.text(
+            `y = ${m.toFixed(2)}x\n` +
+            `length = ${length.toFixed(2)}\n` +
+            `angle = ${angleDeg.toFixed(1)}°`
+        );
+
+        this.segmentInfoText.visible(true);
+    }
+
+    private clearSegmentInfo() {
+        this.segmentInfoText.visible(false);
+    }
 
     // --- Drawing Methods ---
     private drawGridAndAxes() {
@@ -263,12 +317,27 @@ export class GraphView {
         const rc = this.model.getRecentConnectionPair();
         if (rc) this.drawPersistentBridgeSegment(rc.fromX, rc.fromY, rc.toX, rc.toY);
 
+        const seg = this.model.getSegmentInput();
         const eq = this.model.getParsedEquation();
-        if (eq && this.model.getSegmentInput()) {
-            this.drawEquationLine(eq.m, eq.b);
+
+        // If there is segment input, show info and preview line
+        if (seg) {
+            if (eq) this.drawEquationLine(eq.m, eq.b);
+            this.updateSegmentInfo(seg.m, seg.length);
+
+            // check if it can bridge
+            if (this.model.canBridgeWithCurrentSegment()) {
+                this.hideSegmentError();
+            } else {
+                this.showSegmentError("Cannot reach next platform");
+            }
+
         } else {
             this.clearEquationLine();
+            this.clearSegmentInfo();
+            this.hideSegmentError();
         }
+
 
         // 4. UI equation display disabled
 
