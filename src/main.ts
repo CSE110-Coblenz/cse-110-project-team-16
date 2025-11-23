@@ -5,6 +5,9 @@ import { GraphModel } from "./MainGame/Graph/GraphModel";
 import { GraphView } from "./MainGame/Graph/GraphView";
 import { GraphController } from "./MainGame/Graph/GraphController";
 
+import { FeedbackModel } from "./MainGame/Popup/FeedbackModel";
+import { FeedbackView } from "./MainGame/Popup/FeedbackView";
+import { FeedbackController } from "./MainGame/Popup/FeedbackController";
 import { PlayerStore, PlayerProfile } from "./MainGame/Player/PlayerStore";
 import { requestQuit } from "./MainGame/UI/Quit";
 import { showQuitDialog } from "./MainGame/UI/Quit";
@@ -17,12 +20,19 @@ const stage = new Konva.Stage({
   width: model.getWidth(),
   height: model.getHeight(),
 });
-
 // 3. Create View
 new GraphView(model, stage);
 
+// Feedback MVC
+const feedbackModel = new FeedbackModel();
+const feedbackView = new FeedbackView(stage);
+const feedbackController = new FeedbackController(feedbackModel, feedbackView);
+
+
+
 // 4. Create Controller (now includes slope input handling)
-new GraphController(model);
+new GraphController(model, feedbackController);
+
 
 // --- Player & UI Data ---
 let profile: PlayerProfile | null = null;
