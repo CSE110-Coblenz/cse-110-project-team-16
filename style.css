@@ -17,3 +17,26 @@ body {
     height: 100%;
     background-color: #fff;
 }
+
+.input-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.input-prefix {
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: black;
+    pointer-events: none;
+    /* user can't click/delete this */
+    font-size: 14px;
+}
+
+.input-wrapper input {
+    padding-left: 28px;
+    /* make room for prefix */
+    width: 80px;
+    /* same width as before */
+}

@@ -8,6 +8,23 @@
 </head>
 
 <body>
+  <div id="ui" style="position: absolute; z-index: 10; padding: 8px; top: 8px; right: 8px;">
+    <button id="retryBtn">Retry</button>
+    <button id="restartAllBtn">Restart All</button>
+    <button id="nextBtn" style="display:none;">Next Level</button>
+    <button id="quitBtn">Quit</button>
+    <input id="playerNameInput" type="text" placeholder="Player name" style="margin-left:12px; width: 140px;" />
+    <span id="playerInfo" style="margin-left:12px; font-weight:600;"></span>
+    <div style="margin-top:6px; text-align:right;">
+      <div class="input-wrapper">
+        <span class="input-prefix">y=</span>
+        <input id="equationInput" type="text" placeholder="i.e. mx" />
+      </div>
+      <label style="margin:0 4px 0 8px;">len</label>
+      <input id="lengthInput" type="number" step="any" style="width:80px;" placeholder="length" />
+      <button id="drawBtn" style="margin-left:8px;">Draw</button>
+    </div>
+  </div>
   <div id="container"></div>
 
   <script type="module" src="/src/main.ts"></script>
