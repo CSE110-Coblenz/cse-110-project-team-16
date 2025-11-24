@@ -1,5 +1,6 @@
 import { GraphModel } from "./GraphModel";
 import { parseEquation, LineEquation } from './Equation';
+import { FeedbackController } from "../Popup/FeedbackController";
 
 export class GraphController {
     private model: GraphModel;
@@ -8,10 +9,11 @@ export class GraphController {
     private equationInput: HTMLInputElement | null;
     private lengthInput: HTMLInputElement | null;
     private drawBtn: HTMLButtonElement | null;
+    private feedbackController: FeedbackController;
 
-    constructor(model: GraphModel) {
+    constructor(model: GraphModel, feedbackController: FeedbackController) {
         this.model = model;
-
+        this.feedbackController = feedbackController;
         // Attach keyboard event listener (existing behaviour)
         window.addEventListener("keydown", this.handleKeydown);
 
@@ -64,7 +66,14 @@ export class GraphController {
         if (eq?.b != null && eq.b != 0) return;
         if (isNaN(L) || L <= 0) return;
         this.model.setSegmentInput(m, L);
-        this.model.tryBridgeWithSegment();
+        const isSuccess = this.model.tryBridgeWithSegment();
+
+        // After drawing, evaluate and provide feedback
+        console.log('Evaluating user line for feedback...');
+        const userLine: { m: number, length: number } = { m, length: L };
+        const expectedLine: { m: number, length: number } = this.model.getExpectedSegment();
+        // Trigger feedback popup
+        this.feedbackController.handleTurnComplete(isSuccess, expectedLine, userLine);
     }
 
     // NEW — fraction parsing
