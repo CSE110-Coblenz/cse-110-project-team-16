@@ -115,6 +115,27 @@ export class GraphModel {
         this.notify();
     }
 
+    public getExpectedSegment() : { m: number; length: number } {
+        // 1. Safety Checks
+        if (this.anchorIndex >= this.platformsData.length - 1) {
+            return { m: 0, length: 0 }; 
+        }
+        const x1 = this.getAnchorEndX();
+        const y1 = this.getAnchorY();
+        const nextPlatform = this.platformsData[this.anchorIndex + 1];
+        const x2 = Math.min(nextPlatform.startX, nextPlatform.endX);
+        const y2 = nextPlatform.y;
+        if (x1 === null || y1 === null) {
+            return { m: 0, length: 0 };
+        }
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const m = dx === 0 ? 0 : dy / dx;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        return { m, length };
+    }   
+    
+
     public getSegmentInput(): { m: number; length: number } | null {
         return this.segmentInput;
     }

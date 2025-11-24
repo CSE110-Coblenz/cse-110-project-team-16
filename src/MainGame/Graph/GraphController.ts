@@ -66,14 +66,14 @@ export class GraphController {
         if (eq?.b != null && eq.b != 0) return;
         if (isNaN(L) || L <= 0) return;
         this.model.setSegmentInput(m, L);
-        this.model.tryBridgeWithSegment();
+        const isSuccess = this.model.tryBridgeWithSegment();
 
         // After drawing, evaluate and provide feedback
         console.log('Evaluating user line for feedback...');
-        const userLine: LineEquation = { m: m, b: 0 };
-        const expectedLine: LineEquation = this.model.getExpectedEquation();
+        const userLine: { m: number, length: number } = { m, length: L };
+        const expectedLine: { m: number, length: number } = this.model.getExpectedSegment();
         // Trigger feedback popup
-        this.feedbackController.handleTurnComplete(expectedLine, userLine);
+        this.feedbackController.handleTurnComplete(isSuccess, expectedLine, userLine);
     }
 
     // NEW — fraction parsing

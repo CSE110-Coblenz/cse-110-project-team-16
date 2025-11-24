@@ -35,20 +35,28 @@ export class FeedbackModel {
         const interceptDeviation = (expected.b - actual.b);
         return { slopeDeviation, interceptDeviation };
     }
-    evaluateTurn(expected: LineEquation, actual: LineEquation) {
+    evaluateTurn(isSuccess: boolean, expected: {m: number, length: number}, actual: {m: number, length: number}) {
         const tips: string[] = [];
-        const epsilon = 0.1;
+        if (isSuccess) {
+            tips.push("Great job! Click to go to the next level.");
+            this.setFeedbackText(tips, true);
+            return;
+        }
+        const epsilonSlope = 0.1;
+        const epsilonLength = 0.1;
         const slopeDiff = expected.m - actual.m;
-        const interceptDiff = expected.b - actual.b;
-        if (Math.abs(slopeDiff) > epsilon) {
+        const lengthDiff = expected.length - actual.length;
+        if (Math.abs(slopeDiff) > epsilonSlope) {
             tips.push(slopeDiff > 0 ? "Slope is too shallow! Try a steeper angle." : "Slope is too steep! Try a shallower angle.");
         }
 
-        if (Math.abs(interceptDiff) > epsilon) {
-            tips.push(interceptDiff > 0 ? "Your starting point (intercept) is too low." : "Your starting point (intercept) is too high.");
+        if (Math.abs(lengthDiff) > epsilonLength) {
+            tips.push(lengthDiff > 0 
+                ? "Bridge is too short!" 
+                : "Bridge is too long!");
         }
         if (tips.length === 0) {
-            tips.push("Perfect! You've got it right.");
+            tips.push("Close! Try adjusting slightly");
         }
         this.setFeedbackText(tips, true);
     }

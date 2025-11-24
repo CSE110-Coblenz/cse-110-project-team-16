@@ -13,8 +13,8 @@ export class FeedbackController {
         this.view.bindClose(() => this.handleClose());
     }
 
-    handleTurnComplete(expectedLine: LineEquation, userLine: LineEquation) {
-        this.model.evaluateTurn(expectedLine, userLine);
+    handleTurnComplete(isSuccess: boolean, expectedLine: {m: number, length: number}, userLine: {m: number, length: number}) {
+        this.model.evaluateTurn(isSuccess, expectedLine, userLine);
     }
 
     handleClose() {
