@@ -60,7 +60,7 @@ export class GraphController {
 
         // Parse slope using parseEquation (now supports fractions like "1/2")
         const prefix = "y=";
-        const eqStr = prefix + this.equationInput.value + "x";
+        const eqStr = prefix + this.equationInput.value;
         const eq = parseEquation(eqStr);
         const m = eq?.m;
 
