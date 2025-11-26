@@ -11,6 +11,13 @@ import { FeedbackController } from "./MainGame/Popup/FeedbackController";
 import { PlayerStore, PlayerProfile } from "./MainGame/Player/PlayerStore";
 import { requestQuit } from "./MainGame/UI/Quit";
 import { showQuitDialog } from "./MainGame/UI/Quit";
+
+
+//Added tutorial imports here 
+import { TutorialModel } from "./MainGame/Tutorial/TutorialModel";
+import { TutorialView } from "./MainGame/Tutorial/TutorialView";
+import { TutorialController } from "./MainGame/Tutorial/TutorialController";
+
 // 1. Create the Model (the data)
 const model = new GraphModel();
 
@@ -28,7 +35,13 @@ const feedbackModel = new FeedbackModel();
 const feedbackView = new FeedbackView(stage);
 const feedbackController = new FeedbackController(feedbackModel, feedbackView);
 
-
+// Tutorial MVC
+// Stores the slides and mangages the slides 
+// Renders the tutorial popup 
+// User button interactions updateing model and view
+const tutorialModel = new TutorialModel();
+const tutorialView = new TutorialView(stage);
+const tutorialController = new TutorialController(tutorialModel, tutorialView);
 
 // 4. Create Controller (now includes slope input handling)
 new GraphController(model, feedbackController);
@@ -96,6 +109,10 @@ if (quitBtn) {
       onReturnToGame: () => {
         // Do nothing; dialog already closed.
         // Game just resumes as-is.
+      },
+      //here we implment the onHelp function to open the tutorial 
+      onHelp: () => {
+        tutorialController.open();
       },
       onQuitToMenu: () => {
         // For now, we don't have a main menu.

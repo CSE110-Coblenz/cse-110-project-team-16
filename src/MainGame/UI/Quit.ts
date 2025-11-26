@@ -13,6 +13,9 @@ export function requestQuit(confirmFn: ConfirmFn, message = "Quit the game and r
 export interface QuitDialogHandlers {
   onReturnToGame: () => void;
   onQuitToMenu: () => void;
+  //onhelp 
+  onHelp?: () => void;
+
 }
 
 
@@ -126,12 +129,40 @@ export function showQuitDialog(
 
   quitGroup.add(quitRect, quitText);
 
+   const helpWidth = 70;
+  const helpHeight = 26;
+
+  const helpGroup = new Knova.Group({
+    x: boxWidth - helpWidth - 20,      // keep aligned to the right
+    y: boxHeight - helpHeight - 10, 
+  });
+
+  const helpRect = new Knova.Rect({
+    x: 0,
+    y: 0,
+    width: helpWidth,
+    height: helpHeight,
+    fill: "#e5e7eb",
+    cornerRadius: helpHeight / 2,
+  });
+
+  const helpText = new Knova.Text({
+    x: 0,
+    y: 5,
+    width: helpWidth,
+    align: "center",
+    text: "Help",
+    fontSize: 14,
+    fill: "#111827",
+  });
+
+  helpGroup.add(helpRect, helpText);
+
 
   const closeModal = () => {
     modalLayer.destroy();
     stage.batchDraw();
   };
-
 
   returnGroup.on("click tap", () => {
     closeModal();
@@ -143,9 +174,18 @@ export function showQuitDialog(
     handlers.onQuitToMenu();
   });
 
+
+  // Go to the Help popup when help is clicked, 
+  // and have the quit screen open still
+  helpGroup.on("click tap", () => {
+    if (handlers.onHelp) {
+      handlers.onHelp();
+    }
+  });
+
   const container = stage.container();
 
-  [returnGroup, quitGroup].forEach((group) => {
+  [returnGroup, quitGroup, helpGroup].forEach((group) => {
     group.on("mouseenter", () => {
       container.style.cursor = "pointer";
     });
@@ -154,10 +194,9 @@ export function showQuitDialog(
     });
   });
 
-  boxGroup.add(box, title, returnGroup, quitGroup);
+  boxGroup.add(box, title, returnGroup, quitGroup, helpGroup);
   modalLayer.add(backdrop, boxGroup);
   stage.add(modalLayer);
   modalLayer.moveToTop();
-
   stage.batchDraw();
 }
