@@ -17,8 +17,8 @@ export class MinigameView{
     private backgroundLayer: Konva.Layer;
     private piecesLayer: Konva.Layer;
     private uiLayer: Konva.Layer;
-    private titleText: Konva.Text;
-    private captionText: Konva.Text;
+    private titleText!: Konva.Text;
+    private captionText!: Konva.Text;
 
     constructor(model: MinigameModel, stage: Konva.Stage){
         this.model = model;

@@ -57,14 +57,20 @@ export class GraphController {
     // parse slope & length then call model
     private triggerDraw() {
         if (!this.equationInput || !this.lengthInput) return;
+
+        // Parse slope using parseEquation (now supports fractions like "1/2")
         const prefix = "y=";
-        const eqStr = prefix + this.equationInput.value;
+        const eqStr = prefix + this.equationInput.value; // x manually typed
         const eq = parseEquation(eqStr);
         const m = eq?.m;
+
+        // Parse length (decimal only)
         const L = parseFloat(this.lengthInput.value);
+
         if (m == null) return;
-        if (eq?.b != null && eq.b != 0) return;
+        if (eq?.b != null && eq.b != 0) return; // reject if there's a y-intercept
         if (isNaN(L) || L <= 0) return;
+
         this.model.setSegmentInput(m, L);
         const isSuccess = this.model.tryBridgeWithSegment();
 
@@ -74,21 +80,5 @@ export class GraphController {
         const expectedLine: { m: number, length: number } = this.model.getExpectedSegment();
         // Trigger feedback popup
         this.feedbackController.handleTurnComplete(isSuccess, expectedLine, userLine);
-    }
-
-    // NEW — fraction parsing
-    private parseMaybeFraction(text: string): number | null {
-        if (!text) return null;
-        const s = text.trim();
-        if (s.includes('/')) {
-            const [numStr, denStr] = s.split('/').map(t => t.trim());
-            if (!numStr || !denStr) return null;
-            const num = parseFloat(numStr);
-            const den = parseFloat(denStr);
-            if (!isFinite(num) || !isFinite(den) || den === 0) return null;
-            return num / den;
-        }
-        const v = parseFloat(s);
-        return isFinite(v) ? v : null;
     }
 }
