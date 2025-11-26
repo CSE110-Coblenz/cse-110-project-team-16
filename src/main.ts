@@ -237,3 +237,13 @@ function startMinigame(shapeId: string){
       }
     }
   });
+
+//  // Testing 
+//   console.log("total layers:", stage.find("Layer").length);
+
+//   minigameModel.startShape("house");
+
+//   stage.find("Layer").forEach((layer: any, idx: number) => {
+//     if(idx < 3) layer.hide();
+//     else layer.show();
+//   })
