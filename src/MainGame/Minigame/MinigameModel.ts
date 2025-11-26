@@ -10,7 +10,7 @@ import { getShapePrompt, ShapePrompt, PuzzlePiece } from "./ShapePrompts";
  * - validating success/failure
  */
 
-export {ShapePrompt, PuzzlePiece};
+export type { ShapePrompt, PuzzlePiece };
 
 // 8.0 Define MinigameModel class 
 export class MinigameModel{
