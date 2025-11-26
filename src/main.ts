@@ -11,6 +11,11 @@ import { FeedbackController } from "./MainGame/Popup/FeedbackController";
 import { PlayerStore, PlayerProfile } from "./MainGame/Player/PlayerStore";
 import { requestQuit } from "./MainGame/UI/Quit";
 import { showQuitDialog } from "./MainGame/UI/Quit";
+
+import { MinigameModel } from "./MainGame/Minigame/MinigameModel";
+import { MinigameView } from "./MainGame/Minigame/MinigameView";
+ // import { start } from "repl";
+
 // 1. Create the Model (the data)
 const model = new GraphModel();
 
@@ -131,3 +136,89 @@ model.subscribe(() => {
 });
 
 updatePlayerInfo();
+
+// console.log("About to create minigame...");
+// console.log("Stage layers before minigame:", stage.find("Layer").length);
+
+// const minigameModel = new MinigameModel(model.getWidth(), model.getHeight());
+// console.log("minigame model created successfully");
+
+
+// Create minigame instances
+const minigameModel = new MinigameModel(model.getWidth(), model.getHeight());
+const minigameView = new MinigameView(minigameModel, stage);
+
+let isMinigameActive = false;
+
+// Hide minigame layers at first
+stage.find("Layer").forEach((layer: any, idx: number) => {
+  if(idx >= 3) layer.hide();
+});
+
+// Show minigame
+function startMinigame(shapeId: string){
+  isMinigameActive = true;
+
+  // Hide main game layers: graph, UI, feedback
+  stage.find("Layer").forEach((layer: any, idx: number) => {
+    if(idx < 3) layer.hide()
+    else layer.show();
+  });
+
+  minigameModel.startShape(shapeId);
+
+  // Hide UI buttons during minigame
+  if (retryBtn) retryBtn.style.display = "none";
+  if (nextBtn) nextBtn.style.display = "none";
+  if (restartAllBtn) restartAllBtn.style.display = "none";
+  if (quitBtn) quitBtn.style.display = "none";
+}
+
+  // Exit minigame
+  function exitMinigame(){
+    isMinigameActive = false;
+
+    // Show main game and hide minigame
+    stage.find("Layer").forEach((layer: any, idx: number) => {
+      if(idx < 3) layer.show();
+      else layer.hide();
+    });
+
+    // Restore UI buttons
+    if(retryBtn) retryBtn.style.display = "inline-block";
+    if(restartAllBtn) restartAllBtn.style.display = "inline-block";
+    if(quitBtn) quitBtn.style.display = "inline-block";
+  }
+
+  // Autoexit after 15 sec (completion detection needed)
+  let minigameTimer: number | null = null;
+
+  function startMinigameWithTimer(shapeId: string){
+    startMinigame(shapeId);
+
+    minigameTimer = window.setTimeout(() => {
+      console.log("Minigame auto-exiting (completion detection needed)");
+      exitMinigame();
+      model.nextLevel();
+      if(profile) PlayerStore.updateLevel(profile.name, model.getLevel());
+      updatePlayerInfo();
+    }, 15000); // 15 ms
+  }
+
+  // Add new subscription to model for the minigame trigger
+  model.subscribe(() => {
+    // Check for minigame trigger after the level completes
+    if(model.isLevelCompleted() && !isMinigameActive){
+      const currentLevel = model.getLevel();
+
+      // Trigger minigame after levels 3, 6, 9
+      if(currentLevel % 3 === 0){
+        let shapeId = "house";
+        if(currentLevel === 6) shapeId = "tree";
+        else if(currentLevel === 9) shapeId = "sun";
+
+        // Wait 1 second, show minigame
+        setTimeout(() => startMinigameWithTimer(shapeId), 1000); // 1 ms
+      }
+    }
+  });

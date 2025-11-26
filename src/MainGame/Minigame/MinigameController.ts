@@ -8,15 +8,16 @@ import { MinigameModel } from "./MinigameModel";
  */
 
 // 5.0 Define MinigameController class
-export class MinigameController{
-    private model: MinigameModel;
-    private isActive: boolean;
+// export class MinigameController{
+//     private model: MinigameModel;
+//     private isActive: boolean;
 
-    // 5.2
-    constructor(model: MinigameModel){
-        this.model = model;
-        this.isActive = false;
-    }
+//     // 5.2
+//     constructor(model: MinigameModel){
+//         this.model = model;
+//         this.isActive = false;
+//     }
+// ^ working on dragging/dropping
 
     // public activate(){
     //     if(this.isActive) return;
@@ -41,4 +42,4 @@ export class MinigameController{
     //         this.model.appendCharacter(e.key);
     //     }
     // };
-}
+//}
