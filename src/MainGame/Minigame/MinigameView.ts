@@ -122,8 +122,8 @@ export class MinigameView{
                 y: -piece.height / 2,
                 width: piece.width,
                 height: piece.height,
-                fill: "#FFB74D",
-                stroke: "#F57C00",
+                fill: "#f7c98d",
+                stroke: "#8f7553",
                 strokeWidth: 3,
             });
         }
@@ -136,8 +136,8 @@ export class MinigameView{
 
             shape = new Konva.Line({
                 points: centeredPoints,
-                fill: "#F57C00",
-                stroke: "#F57C00",
+                fill: "#fc342d",
+                stroke: "#851c18",
                 strokeWidth: 3,
                 closed: true,
             });

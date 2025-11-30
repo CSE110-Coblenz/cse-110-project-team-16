@@ -59,10 +59,10 @@ function housePrompt(width: number, height: number): ShapePrompt{
                 y: spawnY,
                 rotation: 0,
                 targetX: centerX,
-                targetY: centerY + 25,
+                targetY: centerY + 30,
                 targetRotation: 0,
-                width: 120,
-                height: 120,
+                width: 125,
+                height: 125,
                 locked: false,
             },
             // Triangle, roof
@@ -75,22 +75,22 @@ function housePrompt(width: number, height: number): ShapePrompt{
                 y: spawnY,
                 rotation: 0,
                 targetX: centerX,
-                targetY: centerY -55,
+                targetY: centerY - 65,
                 targetRotation: 0,
-                width: 140,
-                height: 80,
-                points: [70, 0, 140, 80, 0, 80],
+                width: 130,
+                height: 60,
+                points: [65, 0, 130, 60, 0, 60],
                 locked: false,                
             },
         ],
         // Complete house outline
         silhouettePoints:[
-            centerX - 60, centerY + 85, // bottom left
-            centerX - 60, centerY - 35, // roof left
-            centerX, centerY - 95,      // roof peak
-            centerX + 60, centerY - 35, // roof right
-            centerX + 60, centerY + 85, // bottom right
-            centerX - 60, centerY + 85, // closing path
+            centerX - 65, centerY + 90, // bottom left
+            centerX - 65, centerY - 40, // roof left
+            centerX, centerY - 100,      // roof peak
+            centerX + 65, centerY - 40, // roof right
+            centerX + 65, centerY + 90, // bottom right
+            centerX - 65, centerY + 90, // closing path
         ],
     };
 }
