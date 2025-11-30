@@ -1,25 +1,44 @@
-export interface LineEquation {
-    m: number;
-    b: number;
-}
+import { CurveType, LineEquation } from "./CurveType";
 
-// Helper function to parse fractions like "1/2" or regular decimals
-function parseMaybeFraction(text: string): number | null {
-    if (!text) return null;
-    const s = text.trim();
-    if (s.includes('/')) {
-        const [numStr, denStr] = s.split('/').map(t => t.trim());
-        if (!numStr || !denStr) return null;
-        const num = parseFloat(numStr);
-        const den = parseFloat(denStr);
-        if (!isFinite(num) || !isFinite(den) || den === 0) return null;
-        return num / den;
+type AnyCurve = LineEquation | null;
+
+
+// factory to parse different types of curves
+export function curveParserFactory(type: CurveType, params: string): AnyCurve {
+    switch (type) {
+        case CurveType.LineEquation:
+            return parseLineEquation(params);
+        default:
+            throw new Error(`Unknown curve type: ${type}`);
     }
-    const v = parseFloat(s);
-    return isFinite(v) ? v : null;
 }
 
-export function parseEquation(eq: string): LineEquation | null {
+
+
+
+
+
+
+
+// parse line equation
+function parseLineEquation(eq: string): LineEquation | null {
+
+    // Helper function to parse fractions like "1/2" or regular decimals
+    function parseMaybeFraction(text: string): number | null {
+        if (!text) return null;
+        const s = text.trim();
+        if (s.includes('/')) {
+            const [numStr, denStr] = s.split('/').map(t => t.trim());
+            if (!numStr || !denStr) return null;
+            const num = parseFloat(numStr);
+            const den = parseFloat(denStr);
+            if (!isFinite(num) || !isFinite(den) || den === 0) return null;
+            return num / den;
+        }
+        const v = parseFloat(s);
+        return isFinite(v) ? v : null;
+    }
+
     eq = eq.replace(/\s+/g, "");
     if (!eq.startsWith("y=")) return null;
 
