@@ -157,11 +157,41 @@ export class MinigameView{
 
         // Shape added to group
         group.add(shape);
+        // 11.1 Dragging should be allowed
         group.draggable(true);
 
         // 11.0 Make pieces draggable
         group.on("dragmove", () => {
             this.model.updatePiecePosition(piece.id, group.x(), group.y());
+            // const piece = this.model.getPieces().find(p => p.id === piece.id);
+            // if(piece){
+            //     piece.x = group.x();
+            //     piece.y = group.y();
+            // }
+        });
+
+        // 12.1 Try to snap when drag ends
+        group.on("dragend", () => {
+            const snapped = this.model.snapPiece(piece.id);
+            if(snapped){
+                // Visual feedback where piece snaps to exact position
+                group.position({x: piece.targetX, y: piece.targetY});
+                group.rotation(piece.targetRotation);
+                // Can not drag anymore
+                group.draggable(false); 
+
+                // Change its color to show locked feature
+                shape.fill("#4CAF50"); // to green
+                shape.stroke("#2E7D32");
+
+                this.piecesLayer.draw();
+
+                // Check whether puzzle is complete
+                if(this.model.checkCompletion()){
+                    console.log("Puzzle complete!");
+                    // Celebrate
+                }
+            }
         });
 
         group.on("mouseenter", () => {

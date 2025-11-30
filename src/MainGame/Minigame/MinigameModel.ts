@@ -28,6 +28,9 @@ export class MinigameModel{
     private feedbackMsg: string;
     private listeners: Function[];
 
+    // 13.1 Track completion
+    private isComplete: boolean;
+
     constructor(width: number, height: number){
         this.width = width;
         this.height = height;
@@ -40,6 +43,7 @@ export class MinigameModel{
         this.feedbackMsg = "";
         // Observer pattern
         this.listeners = [];
+        this.isComplete = false;
     }
 
     // Public Getters
@@ -51,6 +55,7 @@ export class MinigameModel{
     public getCurrPrompt = () => this.currPrompt;
     public getPieces = () => this.pieces;
     public getFeedbackMsg = () => this.feedbackMsg;
+    public getIsComplete = () => this.isComplete;
 
     // 8.1 Initialize new shape puzzle taken from ../Minigame/ShapePrompts.ts
     public startShape(shapeId: string){
@@ -76,7 +81,50 @@ export class MinigameModel{
 
         piece.x = x;
         piece.y = y;
-        this.notify();
+        // DO NOT notify during drag (for now?) to remove lag, causes drawing
+        // this.notify(); 
+    }
+
+    // 12.0 Snap piece to target position logic
+    public snapPiece(pieceId: string): boolean{
+        const piece = this.pieces.find(p => p.id === pieceId);
+        if(!piece || piece.locked) return false;
+
+        const SNAP_THRESHOLD = 30; // pixels
+        const ROTATION_THRESHOLD = 15; // degrees
+
+        // Compute distance from curr position to target
+        const dx = piece.x - piece.targetX;
+        const dy = piece.y - piece.targetY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Compute rotation difference
+        const rotateDiff = Math.abs(piece.rotation - piece.targetRotation);
+
+        // Check whether piece is close enough to snap into place
+        if(distance <= SNAP_THRESHOLD && rotateDiff <= ROTATION_THRESHOLD){
+            // Then snap, lock piece
+            piece.x = piece.targetX;
+            piece.y = piece.targetY;
+            piece.rotation = piece.targetRotation;
+            piece.locked = true;
+
+            this.feedbackMsg = `${piece.id} locked in place!`;
+            // Trigger redraw to show the locked piece
+            this.notify();
+            return true;
+        }
+        return false;
+    }
+
+    // 13.0 Check whether puzzle is complete
+    public checkCompletion(): boolean{
+        this.isComplete = this.pieces.every(p => p.locked);
+        if(this.isComplete){
+            this.feedbackMsg = "Puzzle Complete!";
+            this.notify();
+        }
+        return this.isComplete;
     }
 
     // 8.3 Subscribe listener function to model updates
