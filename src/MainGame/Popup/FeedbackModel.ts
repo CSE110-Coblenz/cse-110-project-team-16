@@ -1,5 +1,5 @@
-import { SCALE, INPUT_PREFIX } from '../Graph/Const';
-import { parseEquation, LineEquation } from '../Graph/Equation';
+import { LineEquation } from '../Graph/CurveType';
+
 export class FeedbackModel {
     // data members
     visible: boolean;

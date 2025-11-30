@@ -84,10 +84,10 @@ export class FeedbackView {
             this.textNode.text(combinedText);
 
             const textHeight = this.textNode.height();
-            const padding = 20; 
+            const padding = 20;
             const bottomPadding = 60; // Space for button
 
-            const requiredHeight = textHeight + padding + bottomPadding; 
+            const requiredHeight = textHeight + padding + bottomPadding;
             const rect = this.feedbackGroup.findOne('.bg') as Konva.Rect;
             if (rect) {
                 rect.height(requiredHeight);
@@ -96,7 +96,7 @@ export class FeedbackView {
             this.closeButtonRect.y(buttonY);
 
 
-            const closeText = this.feedbackGroup.find('Text')[1] as Konva.Text; 
+            const closeText = this.feedbackGroup.find('Text')[1] as Konva.Text;
             if (closeText) {
                 closeText.y(buttonY + 8);
             }

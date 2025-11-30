@@ -1,7 +1,7 @@
 
 import { SCALE, INPUT_PREFIX } from './Const';
-import { parseEquation, LineEquation } from './Equation';
-
+import { CurveType, LineEquation } from './CurveType';
+import { curveParserFactory } from "./CurveFactory";
 
 
 type Platform = { startX: number; endX: number; y: number; bridged: boolean };
@@ -115,10 +115,10 @@ export class GraphModel {
         this.notify();
     }
 
-    public getExpectedSegment() : { m: number; length: number } {
+    public getExpectedSegment(): { m: number; length: number } {
         // 1. Safety Checks
         if (this.anchorIndex >= this.platformsData.length - 1) {
-            return { m: 0, length: 0 }; 
+            return { m: 0, length: 0 };
         }
         const x1 = this.getAnchorEndX();
         const y1 = this.getAnchorY();
@@ -133,8 +133,8 @@ export class GraphModel {
         const m = dx === 0 ? 0 : dy / dx;
         const length = Math.sqrt(dx * dx + dy * dy);
         return { m, length };
-    }   
-    
+    }
+
 
     public getSegmentInput(): { m: number; length: number } | null {
         return this.segmentInput;
@@ -235,7 +235,7 @@ export class GraphModel {
     }
 
     public parseAndPlot() {
-        const parsed = parseEquation(this.equationString);
+        const parsed = curveParserFactory(CurveType.LineEquation, this.equationString);
         if (parsed) {
             this.parsedEquation = parsed;
             this.errorMessage = "";
@@ -337,7 +337,7 @@ export class GraphModel {
         this.notify();
     }
     /** Get the expected line equation (used for feedback) */
-    public getExpectedEquation(): LineEquation  {
+    public getExpectedEquation(): LineEquation {
         // 1. Check if we are at the end of the level
         if (this.anchorIndex >= this.platformsData.length - 1) {
             return { m: 0, b: 0 }; // Return a default safe value 
