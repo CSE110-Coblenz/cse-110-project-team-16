@@ -94,7 +94,7 @@ export class MinigameModel{
     }
 
     // 12.0 Snap piece to target position logic
-    public snapPiece(pieceId: string): boolean{
+    public snapPiece(pieceId: string) {
         const piece = this.pieces.find(p => p.id === pieceId);
         if(!piece || piece.locked) return false;
 
