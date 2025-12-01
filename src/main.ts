@@ -163,6 +163,14 @@ updatePlayerInfo();
 const minigameModel = new MinigameModel(model.getWidth(), model.getHeight());
 const minigameView = new MinigameView(minigameModel, stage);
 
+// See when to index, hide layers
+console.log("LAYER COUNT");
+console.log("Total layers:", stage.find("Layer").length);
+stage.find("Layer").forEach((layer: any, idx: number) => {
+  console.log(`Layer ${idx}: ${layer.name() || '(unnamed)'}`);
+});
+console.log("=========");
+
 let isMinigameActive = false;
 
 // Hide minigame layers at first
@@ -189,51 +197,92 @@ function startMinigame(shapeId: string){
   if (quitBtn) quitBtn.style.display = "none";
 }
 
-  // Exit minigame
-  function exitMinigame(){
-    isMinigameActive = false;
+// Exit minigame
+function exitMinigame(){
+  isMinigameActive = false;
 
-    // Show main game and hide minigame
-    stage.find("Layer").forEach((layer: any, idx: number) => {
-      if(idx < 3) layer.show();
-      else layer.hide();
-    });
+  // Show main game and hide minigame
+  stage.find("Layer").forEach((layer: any, idx: number) => {
+    if(idx < 3) layer.show();
+    else layer.hide();
+  });
 
-    // Restore UI buttons
-    if(retryBtn) retryBtn.style.display = "inline-block";
-    if(restartAllBtn) restartAllBtn.style.display = "inline-block";
-    if(quitBtn) quitBtn.style.display = "inline-block";
+  // Restore UI buttons
+  if(retryBtn) retryBtn.style.display = "inline-block";
+  if(restartAllBtn) restartAllBtn.style.display = "inline-block";
+  if(quitBtn) quitBtn.style.display = "inline-block";
+}
+
+  // // Temporary autoexit after 15 sec (completion detection needed)
+  // let minigameTimer: number | null = null;
+
+  // function startMinigameWithTimer(shapeId: string){
+  //   startMinigame(shapeId);
+
+  //   minigameTimer = window.setTimeout(() => {
+  //     console.log("Minigame auto-exiting (completion detection needed)");
+  //     exitMinigame();
+  //     model.nextLevel();
+  //     if(profile) PlayerStore.updateLevel(profile.name, model.getLevel());
+  //     updatePlayerInfo();
+  //   }, 15000); // 15 ms
+  // }
+
+  // // Add new subscription to model for the minigame trigger
+  // model.subscribe(() => {
+  //   // Check for minigame trigger after the level completes
+  //   if(model.isLevelCompleted() && !isMinigameActive){
+  //     const currentLevel = model.getLevel();
+
+  //     // Trigger minigame after levels 3, 6, 9
+  //     if(currentLevel % 3 === 0){
+  //       let shapeId = "house";
+  //       if(currentLevel === 6) shapeId = "tree";
+  //       else if(currentLevel === 9) shapeId = "sun";
+
+  //       // Wait 1 second, show minigame
+  //       setTimeout(() => startMinigameWithTimer(shapeId), 1000); // 1 ms
+  //     }
+  //   }
+  // });
+
+  // Check completion in subscription
+model.subscribe(() => {
+  // After level completes check for minigame trigger
+  if(model.isLevelCompleted() && !isMinigameActive){
+    const currentLevel = model.getLevel();
+
+    // Trigger minigame after levels 3, 6, 9
+    if(currentLevel % 3 === 0){
+      let shapeId = "house";
+      if(currentLevel === 6) shapeId = "tree";
+      else if(currentLevel === 9) shapeId = "sun";
+
+      // Wait 1 second then show minigame
+      setTimeout(() => startMinigame(shapeId), 1000); 
+    }
   }
+});
 
-  // Autoexit after 15 sec (completion detection needed)
-  let minigameTimer: number | null = null;
-
-  function startMinigameWithTimer(shapeId: string){
-    startMinigame(shapeId);
-
-    minigameTimer = window.setTimeout(() => {
-      console.log("Minigame auto-exiting (completion detection needed)");
+// Subscribe to minigame completion
+minigameModel.subscribe(() => {
+  if(minigameModel.getIsComplete() && isMinigameActive){
+    // Wait 2 seconds to show celebration then exit
+    setTimeout(() => {
       exitMinigame();
       model.nextLevel();
       if(profile) PlayerStore.updateLevel(profile.name, model.getLevel());
       updatePlayerInfo();
-    }, 15000); // 15 ms
+    }, 2200);
   }
+});
 
-  // Add new subscription to model for the minigame trigger
-  model.subscribe(() => {
-    // Check for minigame trigger after the level completes
-    if(model.isLevelCompleted() && !isMinigameActive){
-      const currentLevel = model.getLevel();
+//  // Testing 
+//   console.log("total layers:", stage.find("Layer").length);
 
-      // Trigger minigame after levels 3, 6, 9
-      if(currentLevel % 3 === 0){
-        let shapeId = "house";
-        if(currentLevel === 6) shapeId = "tree";
-        else if(currentLevel === 9) shapeId = "sun";
+//   minigameModel.startShape("house");
 
-        // Wait 1 second, show minigame
-        setTimeout(() => startMinigameWithTimer(shapeId), 1000); // 1 ms
-      }
-    }
-  });
+//   stage.find("Layer").forEach((layer: any, idx: number) => {
+//     if(idx < 3) layer.hide();
+//     else layer.show();
+//   });
