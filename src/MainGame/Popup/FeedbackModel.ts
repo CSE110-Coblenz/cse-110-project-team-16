@@ -1,5 +1,5 @@
-import { SCALE, INPUT_PREFIX } from '../Graph/Const';
-import { parseEquation, LineEquation } from '../Graph/Equation';
+import { LineEquation } from '../Graph/CurveType';
+
 export class FeedbackModel {
     // data members
     visible: boolean;
@@ -9,7 +9,7 @@ export class FeedbackModel {
     private listeners: Function[] = [];
 
     // initialize
-    constructor() { 
+    constructor() {
         this.visible = false;
         this.feedbackText = [];
     }
@@ -35,10 +35,10 @@ export class FeedbackModel {
         const interceptDeviation = (expected.b - actual.b);
         return { slopeDeviation, interceptDeviation };
     }
-    evaluateTurn(isSuccess: boolean, expected: {m: number, length: number}, actual: {m: number, length: number}) {
+    evaluateTurn(isSuccess: boolean, expected: { m: number, length: number }, actual: { m: number, length: number }) {
         const tips: string[] = [];
         if (isSuccess) {
-            tips.push("Great job! Click to go to the next level.");
+            tips.push("Great job!");
             this.setFeedbackText(tips, true);
             return;
         }
@@ -51,8 +51,8 @@ export class FeedbackModel {
         }
 
         if (Math.abs(lengthDiff) > epsilonLength) {
-            tips.push(lengthDiff > 0 
-                ? "Bridge is too short!" 
+            tips.push(lengthDiff > 0
+                ? "Bridge is too short!"
                 : "Bridge is too long!");
         }
         if (tips.length === 0) {

@@ -1,6 +1,8 @@
 import { GraphModel } from "./GraphModel";
-import { parseEquation, LineEquation } from './Equation';
 import { FeedbackController } from "../Popup/FeedbackController";
+import { curveParserFactory } from "./CurveFactory";
+import { CurveType } from "./CurveType";
+
 
 export class GraphController {
     private model: GraphModel;
@@ -61,7 +63,7 @@ export class GraphController {
         // Parse slope using parseEquation (now supports fractions like "1/2")
         const prefix = "y=";
         const eqStr = prefix + this.equationInput.value; // x manually typed
-        const eq = parseEquation(eqStr);
+        const eq = curveParserFactory(CurveType.LineEquation, eqStr);
         const m = eq?.m;
 
         // Parse length (decimal only)
