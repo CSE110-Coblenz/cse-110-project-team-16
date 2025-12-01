@@ -19,6 +19,7 @@ export class MinigameView{
     private uiLayer: Konva.Layer;
     private titleText!: Konva.Text;
     private captionText!: Konva.Text;
+    private feedbackText!: Konva.Text;
 
     constructor(model: MinigameModel, stage: Konva.Stage){
         this.model = model;
@@ -39,9 +40,10 @@ export class MinigameView{
         // 9.4 Initalize drawBackground
         this.drawBackground();
         // 9.9 Initalize update
-        this.update();
+        // this.update();
         // Subscribe to model updates
         this.model.subscribe(this.update);
+        this.update();
     }
 
     // 9.1 Start UI text elements initialization
@@ -73,7 +75,22 @@ export class MinigameView{
         });
         this.captionText.offsetX(this.captionText.width() / 2);
 
-        this.uiLayer.add(this.titleText, this.captionText);
+        this.feedbackText = new Konva.Text({
+            x: width / 2,
+            y: 90, // below caption
+            text: "",
+            fontSize: 18,
+            fontFamily: "sans-serif",
+            fontStyle: "bold",
+            fill: "#335",
+            width: width - 100,
+            align: "center",
+        });
+        this.feedbackText.offsetX(this.feedbackText.width() / 2);
+        
+        this.uiLayer.add(this.titleText, this.captionText, this.feedbackText);
+        // this.uiLayer.add(this.titleText, this.captionText);
+
     }
 
     // 9.3 Draw background silhouette
@@ -116,6 +133,10 @@ export class MinigameView{
         // Construct shape based on type
         let shape: Konva.Shape;
 
+        // Change stroke color when locked
+        const strokeColor = piece.locked ? "#2e7d32" : "#8f7553"; // green if locked
+        const strokeWidth = piece.locked ? 4 : 3;
+
         if(piece.type === "square" || piece.type === "rectangle"){
             shape = new Konva.Rect({
                 x: -piece.width / 2,
@@ -123,8 +144,8 @@ export class MinigameView{
                 width: piece.width,
                 height: piece.height,
                 fill: "#f7c98d",
-                stroke: "#8f7553",
-                strokeWidth: 3,
+                stroke: strokeColor,
+                strokeWidth: strokeWidth,
             });
         }
         else if(piece.type === "triangle" && piece.points){
@@ -137,8 +158,8 @@ export class MinigameView{
             shape = new Konva.Line({
                 points: centeredPoints,
                 fill: "#fc342d",
-                stroke: "#851c18",
-                strokeWidth: 3,
+                stroke: strokeColor,
+                strokeWidth: strokeWidth,
                 closed: true,
             });
         }
@@ -158,7 +179,9 @@ export class MinigameView{
         // Shape added to group
         group.add(shape);
         // 11.1 Dragging should be allowed
-        group.draggable(true);
+        // group.draggable(true);
+        // 11.1 Make piece non-draggable if locked
+        group.draggable(!piece.locked);
 
         // 11.0 Make pieces draggable
         group.on("dragmove", () => {
@@ -172,38 +195,45 @@ export class MinigameView{
 
         // 12.1 Try to snap when drag ends
         group.on("dragend", () => {
-            const snapped = this.model.snapPiece(piece.id);
-            if(snapped){
-                // Visual feedback where piece snaps to exact position
-                group.position({x: piece.targetX, y: piece.targetY});
-                group.rotation(piece.targetRotation);
-                // Can not drag anymore
-                group.draggable(false); 
+            this.model.snapPiece(piece.id);
+            // const snapped = this.model.snapPiece(piece.id);
+            // if(snapped){
+            //     // Visual feedback where piece snaps to exact position
+            //     group.position({x: piece.targetX, y: piece.targetY});
+            //     group.rotation(piece.targetRotation);
+            //     // Can not drag anymore
+            //     group.draggable(false); 
 
-                // Change its color to show locked feature
-                shape.fill("#4CAF50"); // to green
-                shape.stroke("#2E7D32");
+            //     // Change its color to show locked feature
+            //     shape.fill("#4CAF50"); // to green
+            //     shape.stroke("#2E7D32");
 
-                this.piecesLayer.draw();
+            //     this.piecesLayer.draw();
 
-                // Check whether puzzle is complete
-                if(this.model.checkCompletion()){
-                    console.log("Puzzle complete!");
-                    // Celebrate
-                }
-            }
+            //     // Check whether puzzle is complete
+            //     if(this.model.checkCompletion()){
+            //         console.log("Puzzle complete!");
+            //         // Celebrate
+            //     }
+            // }
         });
 
         group.on("mouseenter", () => {
-            const container = this.stage.container();
-            container.style.cursor = "move";
+            // const container = this.stage.container();
+            // container.style.cursor = "move";
+            // 13.7 Hove effects only if locked
+            if(piece.locked) return;
+            this.stage.container().style.cursor = "move";
             shape.strokeWidth(4);
             this.piecesLayer.draw();
         });
 
         group.on("mouseleave", () => {
-            const container = this.stage.container();
-            container.style.cursor = "default";
+            // const container = this.stage.container();
+            // container.style.cursor = "default";
+            // 13.8 ""
+            if(piece.locked) return;
+            this.stage.container().style.cursor = "default";
             shape.strokeWidth(3);
             this.piecesLayer.draw();
         });
@@ -245,10 +275,23 @@ export class MinigameView{
         if(prompt){
             this.titleText.text(`Shape Puzzle: ${prompt.name}`);
             this.titleText.offsetX(this.titleText.width() / 2);
-            this.captionText.text(this.model.getFeedbackMsg());
+            this.captionText.text(prompt.caption);
             this.captionText.offsetX(this.captionText.width() / 2);
-        }
 
+            // Update feedback text and color
+            this.feedbackText.text(this.model.getFeedbackMsg());
+            this.feedbackText.offsetX(this.feedbackText.width() / 2);
+            const feedbackType = this.model.getFeedbackType();
+            if(feedbackType === "success"){
+                this.feedbackText.fill("#4caf50"); // green
+            }
+            else if(feedbackType === "error"){
+                this.feedbackText.fill("f44336"); // red
+            }
+            else{
+                this.feedbackText.fill("#335"); // neutral
+            }
+        }
         this.uiLayer.draw();
     };
 }

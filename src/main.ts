@@ -273,7 +273,7 @@ minigameModel.subscribe(() => {
       model.nextLevel();
       if(profile) PlayerStore.updateLevel(profile.name, model.getLevel());
       updatePlayerInfo();
-    }, 2000);
+    }, 2200);
   }
 });
 

@@ -51,7 +51,7 @@ function housePrompt(width: number, height: number): ShapePrompt{
         pieces: [
             // Square, base of house
             {
-                id: "houseBase",
+                id: "Base",
                 type: "square",
                 initialX: centerX - 200,
                 initialY: spawnY,
@@ -67,7 +67,7 @@ function housePrompt(width: number, height: number): ShapePrompt{
             },
             // Triangle, roof
             {
-                id: "houseRoof",
+                id: "Roof",
                 type: "triangle",
                 initialX: centerX,
                 initialY: spawnY,
