@@ -13,14 +13,14 @@ export class TutorialView {
   private titleText: Konva.Text;
   private bodyText: Konva.Text;
   private container: HTMLDivElement;
-  private imageNode: Konva.Image; 
+  private imageNode: Konva.Image;
 
   // Buttons the controller will listen to
   public readonly nextButton: Konva.Group;
   public readonly prevButton: Konva.Group;
   public readonly closeButton: Konva.Group;
 
-// Sets up the tutorial popup elements and create layer
+  // Sets up the tutorial popup elements and create layer
   constructor(stage: Konva.Stage) {
     this.stage = stage;
     this.layer = new Konva.Layer();
@@ -28,7 +28,7 @@ export class TutorialView {
 
     const width = this.stage.width();
     const height = this.stage.height();
-// create the backdrop for tutorial popup
+    // create the backdrop for tutorial popup
     this.backdrop = new Konva.Rect({
       x: 0,
       y: 0,
@@ -41,7 +41,7 @@ export class TutorialView {
     const boxHeight = Math.min(400, height - 80);
     const boxX = (width - boxWidth) / 2;
     const boxY = (height - boxHeight) / 2;
-// create the main panel centered on screen
+    // create the main panel centered on screen
     this.panel = new Konva.Rect({
       x: boxX,
       y: boxY,
@@ -53,7 +53,7 @@ export class TutorialView {
       shadowOpacity: 0.4,
     });
 
-// Body and title text feilds
+    // Body and title text feilds
     this.titleText = new Konva.Text({
       x: boxX + 24,
       y: boxY + 20,
@@ -74,13 +74,13 @@ export class TutorialView {
       fill: "#e5e7eb",
       lineHeight: 1.3,
     });
-// image node gets the impages from TutorialModel 
+    // image node gets the impages from TutorialModel 
     this.imageNode = new Konva.Image({
-    x: boxX + 40,
-    y: boxY + 150,        // below the text
-    width: boxWidth - 80, // leave margins on left/right
-    height: 140,
-    image: undefined as unknown as HTMLImageElement, // 👈 dummy placeholder
+      x: boxX + 40,
+      y: boxY + 150,        // below the text
+      width: boxWidth - 80, // leave margins on left/right
+      height: 140,
+      image: undefined as unknown as HTMLImageElement, // 👈 dummy placeholder
     });
 
 
@@ -128,7 +128,7 @@ export class TutorialView {
 
       return group;
     };
-// creating the buttons and positioning them
+    // creating the buttons and positioning them
     const bottomY = boxY + boxHeight - 60;
 
     this.prevButton = createButton("Back", boxX + 24, bottomY);
@@ -138,7 +138,7 @@ export class TutorialView {
       boxX + boxWidth / 2 - 55,
       bottomY
     );
-// adding all elements to the layer
+    // adding all elements to the layer
     this.layer.add(
       this.backdrop,
       this.panel,
@@ -150,20 +150,20 @@ export class TutorialView {
       this.closeButton
     );
   }
-// show the tutorial popup
+  // show the tutorial popup
   attach(): void {
     this.stage.add(this.layer);
     this.layer.moveToTop();
     this.stage.draw();
   }
-// hide the tutorial popup
+  // hide the tutorial popup
   detach(): void {
-    this.layer.destroy();
+    this.layer.remove();
     this.container.style.cursor = "default";
     this.stage.draw();
   }
-// Update the tutorial popup with the current slide data
-    update(slide: TutorialSlide): void {
+  // Update the tutorial popup with the current slide data
+  update(slide: TutorialSlide): void {
     this.bodyText.text(slide.text);
 
     if (slide.imageSrc) {
