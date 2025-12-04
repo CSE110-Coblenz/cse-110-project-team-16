@@ -4,9 +4,10 @@ import { TutorialView } from "./TutorialView";
 
 //slide data, popup UI, tracks open/close state
 export class TutorialController {
-  private model: TutorialModel; 
-  private view: TutorialView;   
+  private model: TutorialModel;
+  private view: TutorialView;
   private isOpen: boolean;
+  private onCloseCallback?: () => void;
 
   constructor(model: TutorialModel, view: TutorialView) {
     this.model = model;
@@ -39,9 +40,10 @@ export class TutorialController {
 
 
   // Open the tutorial popup, reset to first slide
-  open(): void {
+  open(onClose?: () => void): void {
     if (this.isOpen) return;
     this.isOpen = true;
+    this.onCloseCallback = onClose;
     this.model.reset();
     this.view.attach();
     this.view.update(this.model.getCurrent());
@@ -52,5 +54,9 @@ export class TutorialController {
     if (!this.isOpen) return;
     this.isOpen = false;
     this.view.detach();
+    if (this.onCloseCallback) {
+      this.onCloseCallback();
+      this.onCloseCallback = undefined;
+    }
   }
 }
