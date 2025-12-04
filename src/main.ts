@@ -17,7 +17,7 @@ import { MinigameModel } from "./MainGame/Minigame/MinigameModel";
 import { MinigameView } from "./MainGame/Minigame/MinigameView";
 // import { start } from "repl";
 
-//Added tutorial imports here 
+//Added tutorial imports here
 import { TutorialModel } from "./MainGame/Tutorial/TutorialModel";
 import { TutorialView } from "./MainGame/Tutorial/TutorialView";
 import { TutorialController } from "./MainGame/Tutorial/TutorialController";
@@ -40,8 +40,8 @@ const feedbackView = new FeedbackView(stage);
 const feedbackController = new FeedbackController(feedbackModel, feedbackView);
 
 // Tutorial MVC
-// Stores the slides and mangages the slides 
-// Renders the tutorial popup 
+// Stores the slides and mangages the slides
+// Renders the tutorial popup
 // User button interactions updateing model and view
 const tutorialModel = new TutorialModel();
 const tutorialView = new TutorialView(stage);
@@ -49,7 +49,6 @@ const tutorialController = new TutorialController(tutorialModel, tutorialView);
 
 // 4. Create Controller (now includes slope input handling)
 new GraphController(model, feedbackController);
-
 
 // --- Player & UI Data ---
 let profile: PlayerProfile | null = null;
@@ -60,12 +59,20 @@ if (storedName) {
 }
 
 // UI ELEMENTS
-const retryBtn = document.getElementById("retryBtn") as HTMLButtonElement | null;
+const retryBtn = document.getElementById(
+  "retryBtn"
+) as HTMLButtonElement | null;
 const nextBtn = document.getElementById("nextBtn") as HTMLButtonElement | null;
-const restartAllBtn = document.getElementById("restartAllBtn") as HTMLButtonElement | null;
+const restartAllBtn = document.getElementById(
+  "restartAllBtn"
+) as HTMLButtonElement | null;
 const quitBtn = document.getElementById("quitBtn") as HTMLButtonElement | null;
-const playerInfo = document.getElementById("playerInfo") as HTMLSpanElement | null;
-const playerNameInput = document.getElementById("playerNameInput") as HTMLInputElement | null;
+const playerInfo = document.getElementById(
+  "playerInfo"
+) as HTMLSpanElement | null;
+const playerNameInput = document.getElementById(
+  "playerNameInput"
+) as HTMLInputElement | null;
 
 // --- Player Name Logic ---
 function updatePlayerInfo() {
@@ -107,7 +114,6 @@ if (restartAllBtn) {
   };
 }
 
-
 if (quitBtn) {
   quitBtn.onclick = () => {
     showQuitDialog(stage, {
@@ -115,7 +121,7 @@ if (quitBtn) {
         // Do nothing; dialog already closed.
         // Game just resumes as-is.
       },
-      //here we implment the onHelp function to open the tutorial 
+      //here we implment the onHelp function to open the tutorial
       onHelp: () => {
         tutorialController.open();
       },
@@ -142,7 +148,7 @@ if (quitBtn) {
           },
           onHelp: () => {
             tutorialController.open();
-          }
+          },
         });
 
         // Option B (if you prefer staying on page):
@@ -157,18 +163,14 @@ if (quitBtn) {
 if (playerNameInput) {
   if (profile) playerNameInput.value = profile.name;
   playerNameInput.placeholder = "Player name";
-  playerNameInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      applyPlayerName(playerNameInput.value);
-      playerNameInput.blur();
-    }
-  });
-  playerNameInput.addEventListener("blur", () => applyPlayerName(playerNameInput.value));
+  playerNameInput.disabled = true; // Make read-only/grayed out
+  // Removed event listeners since it's not editable
 }
 
 // Subscribe to model changes
 model.subscribe(() => {
-  if (nextBtn) nextBtn.style.display = model.isLevelCompleted() ? "inline-block" : "none";
+  if (nextBtn)
+    nextBtn.style.display = model.isLevelCompleted() ? "inline-block" : "none";
   updatePlayerInfo();
 });
 
@@ -180,7 +182,6 @@ updatePlayerInfo();
 // const minigameModel = new MinigameModel(model.getWidth(), model.getHeight());
 // console.log("minigame model created successfully");
 
-
 // Create minigame instances
 const minigameModel = new MinigameModel(model.getWidth(), model.getHeight());
 const minigameView = new MinigameView(minigameModel, stage);
@@ -189,7 +190,7 @@ const minigameView = new MinigameView(minigameModel, stage);
 console.log("LAYER COUNT");
 console.log("Total layers:", stage.find("Layer").length);
 stage.find("Layer").forEach((layer: any, idx: number) => {
-  console.log(`Layer ${idx}: ${layer.name() || '(unnamed)'}`);
+  console.log(`Layer ${idx}: ${layer.name() || "(unnamed)"}`);
 });
 console.log("=========");
 
@@ -206,7 +207,7 @@ function startMinigame(shapeId: string) {
 
   // Hide main game layers: graph, UI, feedback
   stage.find("Layer").forEach((layer: any, idx: number) => {
-    if (idx < 3) layer.hide()
+    if (idx < 3) layer.hide();
     else layer.show();
   });
 
@@ -314,15 +315,27 @@ stage.find("Layer").forEach((layer: any, idx: number) => {
   if (idx !== 0) layer.hide();
 });
 
-showMainMenu(stage, {
+const inputEl = showMainMenu(stage, {
   onStartGame: (name: string) => {
+    // Apply name and load profile
     applyPlayerName(name);
+
+    // Show game UI
     toggleGameUI(true);
+    // Show game layers (excluding minigame layers if any)
     stage.find("Layer").forEach((layer: any, idx: number) => {
       if (idx < 3) layer.show();
     });
   },
   onHelp: () => {
-    tutorialController.open();
-  }
+    // Hide input while tutorial is open
+    if (inputEl) inputEl.style.display = "none";
+
+    tutorialController.open(() => {
+      // Show input again when tutorial closes
+      if (inputEl && document.body.contains(inputEl)) {
+        inputEl.style.display = "block";
+      }
+    });
+  },
 });
