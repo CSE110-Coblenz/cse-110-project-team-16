@@ -137,4 +137,6 @@ export function showMainMenu(stage: Konva.Stage, handlers: MenuHandlers) {
     layer.add(background, title, startBtn, helpBtn);
     stage.add(layer);
     layer.draw();
+
+    return input;
 }

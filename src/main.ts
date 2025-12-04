@@ -157,13 +157,8 @@ if (quitBtn) {
 if (playerNameInput) {
   if (profile) playerNameInput.value = profile.name;
   playerNameInput.placeholder = "Player name";
-  playerNameInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      applyPlayerName(playerNameInput.value);
-      playerNameInput.blur();
-    }
-  });
-  playerNameInput.addEventListener("blur", () => applyPlayerName(playerNameInput.value));
+  playerNameInput.disabled = true; // Make read-only/grayed out
+  // Removed event listeners since it's not editable
 }
 
 // Subscribe to model changes
@@ -314,15 +309,27 @@ stage.find("Layer").forEach((layer: any, idx: number) => {
   if (idx !== 0) layer.hide();
 });
 
-showMainMenu(stage, {
+const inputEl = showMainMenu(stage, {
   onStartGame: (name: string) => {
+    // Apply name and load profile
     applyPlayerName(name);
+
+    // Show game UI
     toggleGameUI(true);
+    // Show game layers (excluding minigame layers if any)
     stage.find("Layer").forEach((layer: any, idx: number) => {
       if (idx < 3) layer.show();
     });
   },
   onHelp: () => {
-    tutorialController.open();
+    // Hide input while tutorial is open
+    if (inputEl) inputEl.style.display = "none";
+
+    tutorialController.open(() => {
+      // Show input again when tutorial closes
+      if (inputEl && document.body.contains(inputEl)) {
+        inputEl.style.display = "block";
+      }
+    });
   }
 });
