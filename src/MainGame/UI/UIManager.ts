@@ -24,7 +24,7 @@ export class UIManager {
         if (this.quitBtn) this.quitBtn.onclick = handlers.onQuit;
     }
     // Show/Hide the entire Game UI overlay
-    public toggleUIVisibility(visible: boolean) {
+    public toggleGameUI(visible: boolean) {
         if (this.uiContainer) {
             this.uiContainer.style.display = visible ? "block" : "none";
         }
