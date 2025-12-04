@@ -1,5 +1,6 @@
 import "../style.css";
 import Konva from "konva";
+import { UIManager } from "./MainGame/UI/UIManager";
 
 import { GraphModel } from "./MainGame/Graph/GraphModel";
 import { GraphView } from "./MainGame/Graph/GraphView";
