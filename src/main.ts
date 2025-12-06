@@ -1,5 +1,6 @@
 import "../style.css";
 import Konva from "konva";
+import { UIManager } from "./MainGame/UI/UIManager";
 
 import { GraphModel } from "./MainGame/Graph/GraphModel";
 import { GraphView } from "./MainGame/Graph/GraphView";
@@ -59,115 +60,72 @@ if (storedName) {
   model.setLevel(profile.currentLevel);
 }
 
-// UI ELEMENTS
-const retryBtn = document.getElementById("retryBtn") as HTMLButtonElement | null;
-const nextBtn = document.getElementById("nextBtn") as HTMLButtonElement | null;
-const restartAllBtn = document.getElementById("restartAllBtn") as HTMLButtonElement | null;
-const quitBtn = document.getElementById("quitBtn") as HTMLButtonElement | null;
-const playerInfo = document.getElementById("playerInfo") as HTMLSpanElement | null;
-const playerNameInput = document.getElementById("playerNameInput") as HTMLInputElement | null;
-
-// --- Player Name Logic ---
-function updatePlayerInfo() {
-  if (playerInfo) playerInfo.textContent = `Level: ${model.getLevel()}`;
-  if (playerNameInput && profile) playerNameInput.value = profile.name;
-}
-
-function applyPlayerName(name: string) {
-  const trimmed = name.trim();
-  if (!trimmed) return;
-  PlayerStore.setCurrentPlayerName(trimmed);
-  const loaded = PlayerStore.loadProfile(trimmed);
-  // Set the model level to the loaded profile's level
-  model.setLevel(loaded.currentLevel);
-  // PlayerStore.saveProfile(loaded); // No need to save immediately
-  profile = loaded;
-  updatePlayerInfo();
-}
-
-if (retryBtn) {
-  retryBtn.onclick = () => model.resetLevel();
-}
-
-if (nextBtn) {
-  nextBtn.onclick = () => {
+const uiManager = new UIManager({
+  onRetry: () => model.resetLevel(),
+  onNext: () => {
     model.nextLevel();
     if (profile) PlayerStore.updateLevel(profile.name, model.getLevel());
-    updatePlayerInfo();
-  };
-}
-
-if (restartAllBtn) {
-  restartAllBtn.onclick = () => {
+    updatePlayerInfoWrapper();
+  },
+  onRestartAll: () => {
     const ok = window.confirm("Restart all levels and go back to Level 1?");
     if (!ok) return;
     model.setLevel(1);
     if (profile) PlayerStore.updateLevel(profile.name, 1);
-    updatePlayerInfo();
-  };
-}
-
-
-if (quitBtn) {
-  quitBtn.onclick = () => {
+    updatePlayerInfoWrapper();
+  },
+  onQuit: () => {
+    // Keep your existing quit logic here
     showQuitDialog(stage, {
-      onReturnToGame: () => {
-        // Do nothing; dialog already closed.
-        // Game just resumes as-is.
-      },
-      //here we implment the onHelp function to open the tutorial 
-      onHelp: () => {
-        tutorialController.open();
-      },
+      onReturnToGame: () => {},
+      onHelp: () => tutorialController.open(),
       onQuitToMenu: () => {
         // Hide game UI and show main menu
-        toggleGameUI(false);
-        // Hide game layers except grid (Layer 0)
+        uiManager.toggleGameUI(false); // USE uiManager HERE
+        // Hide game layers logic (we will move this next, keep as is for now)
         stage.find("Layer").forEach((layer: any, idx: number) => {
           if (idx !== 0) layer.hide();
           else layer.show();
         });
-
         showMainMenu(stage, {
           onStartGame: (name: string) => {
-            // Apply name and load profile
             applyPlayerName(name);
-
-            // Show game UI
-            toggleGameUI(true);
-            // Show game layers (excluding minigame layers if any)
+            uiManager.toggleGameUI(true); // USE uiManager HERE
             stage.find("Layer").forEach((layer: any, idx: number) => {
               if (idx < 3) layer.show();
             });
           },
           onHelp: () => {
             tutorialController.open();
-          }
+          },
         });
-
-        // Option B (if you prefer staying on page):
-        // model.setLevel(1);
-        // if (profile) PlayerStore.updateLevel(profile.name, 1);
-        // updatePlayerInfo();
       },
+
     });
-  };
-}
-
-if (playerNameInput) {
-  if (profile) playerNameInput.value = profile.name;
-  playerNameInput.placeholder = "Player name";
-  playerNameInput.disabled = true; // Make read-only/grayed out
-  // Removed event listeners since it's not editable
-}
-
-// Subscribe to model changes
-model.subscribe(() => {
-  if (nextBtn) nextBtn.style.display = model.isLevelCompleted() ? "inline-block" : "none";
-  updatePlayerInfo();
+  },
 });
 
-updatePlayerInfo();
+// Helper to bridge the gap between simple variables and the class for now
+function updatePlayerInfoWrapper() {
+  uiManager.updatePlayerInfo(model.getLevel(), profile?.name);
+}
+
+
+function applyPlayerName(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  PlayerStore.setCurrentPlayerName(trimmed);
+  const loaded = PlayerStore.loadProfile(trimmed);
+  model.setLevel(loaded.currentLevel);
+  profile = loaded;
+  updatePlayerInfoWrapper(); // Changed from updatePlayerInfo()
+}
+// Subscribe to model changes
+model.subscribe(() => {
+  uiManager.toggleNextButton(model.isLevelCompleted());
+  updatePlayerInfoWrapper();
+});
+
 
 // console.log("About to create minigame...");
 // console.log("Stage layers before minigame:", stage.find("Layer").length);
@@ -179,6 +137,8 @@ updatePlayerInfo();
 // Create minigame instances
 const minigameModel = new MinigameModel(model.getWidth(), model.getHeight());
 const minigameView = new MinigameView(minigameModel, stage);
+let isMinigameActive = false;
+
 
 // See when to index, hide layers
 console.log("LAYER COUNT");
@@ -188,7 +148,6 @@ stage.find("Layer").forEach((layer: any, idx: number) => {
 });
 console.log("=========");
 
-let isMinigameActive = false;
 
 // Hide minigame layers at first
 stage.find("Layer").forEach((layer: any, idx: number) => {
@@ -208,10 +167,7 @@ function startMinigame(shapeId: string) {
   minigameModel.startShape(shapeId);
 
   // Hide UI buttons during minigame
-  if (retryBtn) retryBtn.style.display = "none";
-  if (nextBtn) nextBtn.style.display = "none";
-  if (restartAllBtn) restartAllBtn.style.display = "none";
-  if (quitBtn) quitBtn.style.display = "none";
+  uiManager.toggleStandardButtons(false);
 }
 
 // Exit minigame
@@ -224,44 +180,8 @@ function exitMinigame() {
     else layer.hide();
   });
 
-  // Restore UI buttons
-  if (retryBtn) retryBtn.style.display = "inline-block";
-  if (restartAllBtn) restartAllBtn.style.display = "inline-block";
-  if (quitBtn) quitBtn.style.display = "inline-block";
+  uiManager.toggleStandardButtons(true);
 }
-
-// // Temporary autoexit after 15 sec (completion detection needed)
-// let minigameTimer: number | null = null;
-
-// function startMinigameWithTimer(shapeId: string){
-//   startMinigame(shapeId);
-
-//   minigameTimer = window.setTimeout(() => {
-//     console.log("Minigame auto-exiting (completion detection needed)");
-//     exitMinigame();
-//     model.nextLevel();
-//     if(profile) PlayerStore.updateLevel(profile.name, model.getLevel());
-//     updatePlayerInfo();
-//   }, 15000); // 15 ms
-// }
-
-// // Add new subscription to model for the minigame trigger
-// model.subscribe(() => {
-//   // Check for minigame trigger after the level completes
-//   if(model.isLevelCompleted() && !isMinigameActive){
-//     const currentLevel = model.getLevel();
-
-//     // Trigger minigame after levels 3, 6, 9
-//     if(currentLevel % 3 === 0){
-//       let shapeId = "house";
-//       if(currentLevel === 6) shapeId = "tree";
-//       else if(currentLevel === 9) shapeId = "sun";
-
-//       // Wait 1 second, show minigame
-//       setTimeout(() => startMinigameWithTimer(shapeId), 1000); // 1 ms
-//     }
-//   }
-// });
 
 // Check completion in subscription
 model.subscribe(() => {
@@ -289,22 +209,14 @@ minigameModel.subscribe(() => {
       exitMinigame();
       model.nextLevel();
       if (profile) PlayerStore.updateLevel(profile.name, model.getLevel());
-      updatePlayerInfo();
+      updatePlayerInfoWrapper();
     }, 2200);
   }
 });
 
-// --- Game State Management ---
-
-function toggleGameUI(visible: boolean) {
-  const ui = document.getElementById("ui");
-  if (ui) {
-    ui.style.display = visible ? "block" : "none";
-  }
-}
 
 // Initial State: Show Main Menu, Hide Game (except Grid)
-toggleGameUI(false);
+uiManager.toggleGameUI(false);
 stage.find("Layer").forEach((layer: any, idx: number) => {
   if (idx !== 0) layer.hide();
 });
@@ -315,7 +227,7 @@ const inputEl = showMainMenu(stage, {
     applyPlayerName(name);
 
     // Show game UI
-    toggleGameUI(true);
+    uiManager.toggleGameUI(true);
     // Show game layers (excluding minigame layers if any)
     stage.find("Layer").forEach((layer: any, idx: number) => {
       if (idx < 3) layer.show();
@@ -333,3 +245,8 @@ const inputEl = showMainMenu(stage, {
     });
   }
 });
+
+
+
+// Initial update
+updatePlayerInfoWrapper();
